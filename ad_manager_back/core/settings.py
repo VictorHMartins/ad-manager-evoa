@@ -7,7 +7,11 @@ SECRET_KEY = 'django-insecure-f_v32utvaq7p$%+v+t4xd8#s9m3w52zo+(hqf^$x$i5uj17azy
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "ad-manager-evoa-ad-manager-back.t16vcz.easypanel.host",
+    "localhost",
+    "127.0.0.1"
+]
 
 INSTALLED_APPS = [
     'corsheaders',
