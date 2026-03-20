@@ -34,14 +34,19 @@ class PlaylistViewSet(viewsets.ModelViewSet):
                 break
 
             tipo = request.data.get(f"midias[{index}][tipo]")
-            duracao = request.data.get(f"midias[{index}][duracao]")
+            duracao_raw = request.data.get(f"midias[{index}][duracao]")
             ordem = request.data.get(f"midias[{index}][ordem]")
+
+            if tipo == "video":
+                duracao = None
+            else:
+                duracao = int(float(duracao_raw)) if duracao_raw else None
 
             PlaylistMidia.objects.create(
                 playlist=playlist,
                 arquivo=arquivo,
                 tipo=tipo,
-                duracao=duracao if duracao else None,
+                duracao=duracao,
                 ordem=ordem
             )
 
@@ -68,18 +73,23 @@ class PlaylistViewSet(viewsets.ModelViewSet):
 
             arquivo = request.FILES.get(f"midias[{index}][arquivo]")
             tipo = request.data.get(f"midias[{index}][tipo]")
-            duracao = request.data.get(f"midias[{index}][duracao]")
+            duracao_raw = request.data.get(f"midias[{index}][duracao]")
             ordem = request.data.get(f"midias[{index}][ordem]")
             midia_id = request.data.get(f"midias[{index}][id]")
 
             if not tipo:
                 break
 
+            if tipo == "video":
+                duracao = None
+            else:
+                duracao = int(float(duracao_raw)) if duracao_raw else None
+
             if midia_id:
                 try:
                     midia = PlaylistMidia.objects.get(id=midia_id, playlist=instance)
                     midia.tipo = tipo
-                    midia.duracao = duracao if duracao else None
+                    midia.duracao = duracao
                     midia.ordem = ordem
 
                     if arquivo:
@@ -96,7 +106,7 @@ class PlaylistViewSet(viewsets.ModelViewSet):
                         playlist=instance,
                         arquivo=arquivo,
                         tipo=tipo,
-                        duracao=duracao if duracao else None,
+                        duracao=duracao,
                         ordem=ordem
                     )
 
