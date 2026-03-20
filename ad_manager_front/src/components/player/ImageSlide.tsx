@@ -15,9 +15,11 @@ export default function ImageSlide({ src, duracao, onEnd }: any) {
   }, [src])
 
   return (
-    <img
-      src={src}
-      className="w-full h-full object-contain"
-    />
+    <div className="w-full h-full flex items-center justify-center bg-black">
+      <img
+        src={src}
+        className="w-full h-full object-cover"
+      />
+    </div>
   )
 }
