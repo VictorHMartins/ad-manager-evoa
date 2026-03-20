@@ -15,7 +15,7 @@ export default function DashboardPage() {
   const [filas, setFilas] = useState<any[]>([])
 
   function formatarDiaSemana(dias: number[]) {
-    const nomes = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
+    const nomes = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
     if (!dias || dias.length === 0) return "Todos"
     return dias.map(d => nomes[d]).join(", ")
   }
