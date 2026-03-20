@@ -143,28 +143,31 @@ class FilaReproducaoViewSet(viewsets.ModelViewSet):
 def player_api(request):
 
     now = datetime.now()
-    hora = now.time()
-    dia = now.weekday() 
+    hora = now.replace(second=0, microsecond=0).time()
+    dia = (now.weekday() + 1) % 7
 
-    filas = FilaReproducao.objects.filter(ativo=True)
+    filas = FilaReproducao.objects.filter(ativo=True).order_by("horario_inicio")
 
-    fila_ativa = None
+    filas_validas = []
 
     for fila in filas:
 
         dias = fila.dias_semana or []
-        dia_convertido = (dia + 1) % 7
 
-        dia_ok = dia_convertido in dias
-
+        dia_ok = dia in dias
         horario_ok = fila.horario_inicio <= hora <= fila.horario_fim
 
         if dia_ok and horario_ok:
-            fila_ativa = fila
-            break
+            filas_validas.append(fila)
 
-    if not fila_ativa:
+    if not filas_validas:
         return Response({"mensagem": "Nenhuma playlist ativa"})
+
+    fila_ativa = sorted(
+        filas_validas,
+        key=lambda f: f.horario_inicio,
+        reverse=True
+    )[0]
 
     playlists = fila_ativa.playlists.select_related("playlist").order_by("ordem")
 
