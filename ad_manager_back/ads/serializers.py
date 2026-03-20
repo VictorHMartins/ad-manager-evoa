@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Playlist, PlaylistMidia, FilaReproducao, FilaPlaylist
 from datetime import datetime
+import json
 
 
 class PlaylistMidiaSerializer(serializers.ModelSerializer):
@@ -40,11 +41,9 @@ class PlaylistSerializer(serializers.ModelSerializer):
         return instance
 
     def _processar_midias(self, request, playlist):
-
         arquivos = request.FILES
 
         for key in arquivos.keys():
-
             if not key.startswith("midias["):
                 continue
 
@@ -80,11 +79,14 @@ class FilaReproducaoSerializer(serializers.ModelSerializer):
         model = FilaReproducao
         fields = "__all__"
 
+    def _parse_time(self, value):
+        try:
+            return datetime.strptime(value, "%H:%M:%S").time()
+        except:
+            return datetime.strptime(value, "%H:%M").time()
+
     def validate(self, data):
-
         request = self.context["request"]
-
-        import json
 
         dias_raw = request.data.get("dias_semana")
         dias = json.loads(dias_raw) if dias_raw else []
@@ -92,8 +94,8 @@ class FilaReproducaoSerializer(serializers.ModelSerializer):
         inicio_raw = request.data.get("horario_inicio")
         fim_raw = request.data.get("horario_fim")
 
-        inicio = datetime.strptime(inicio_raw[:5], "%H:%M").time()
-        fim = datetime.strptime(fim_raw[:5], "%H:%M").time()
+        inicio = self._parse_time(inicio_raw)
+        fim = self._parse_time(fim_raw)
 
         instance = getattr(self, "instance", None)
 
@@ -109,7 +111,6 @@ class FilaReproducaoSerializer(serializers.ModelSerializer):
             conflitos = conflitos.exclude(id=instance.id)
 
         for fila in conflitos:
-
             dias_existente = fila.dias_semana or []
 
             if not set(dias) & set(dias_existente):
@@ -128,12 +129,10 @@ class FilaReproducaoSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context["request"]
 
-        import json
-
         dias = json.loads(request.data.get("dias_semana"))
 
-        inicio = datetime.strptime(request.data.get("horario_inicio"), "%H:%M").time()
-        fim = datetime.strptime(request.data.get("horario_fim"), "%H:%M").time()
+        inicio = self._parse_time(request.data.get("horario_inicio"))
+        fim = self._parse_time(request.data.get("horario_fim"))
 
         fila = FilaReproducao.objects.create(
             nome=request.data.get("nome"),
@@ -149,12 +148,10 @@ class FilaReproducaoSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         request = self.context["request"]
 
-        import json
-
         dias = json.loads(request.data.get("dias_semana"))
 
-        inicio = datetime.strptime(request.data.get("horario_inicio"), "%H:%M").time()
-        fim = datetime.strptime(request.data.get("horario_fim"), "%H:%M").time()
+        inicio = self._parse_time(request.data.get("horario_inicio"))
+        fim = self._parse_time(request.data.get("horario_fim"))
 
         instance.nome = request.data.get("nome")
         instance.horario_inicio = inicio
@@ -170,11 +167,9 @@ class FilaReproducaoSerializer(serializers.ModelSerializer):
         return instance
 
     def _processar_playlists(self, request, fila):
-
         index = 0
 
         while True:
-
             playlist_id = request.data.get(f"playlists[{index}][playlist]")
 
             if not playlist_id:
