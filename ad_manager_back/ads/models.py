@@ -2,7 +2,6 @@ from django.db import models
 import mimetypes
 import os
 from django.core.exceptions import ValidationError
-from moviepy.video.io.VideoFileClip import VideoFileClip
 
 
 class Playlist(models.Model):
@@ -53,13 +52,8 @@ class PlaylistMidia(models.Model):
             if mime and mime.startswith("video"):
                 self.tipo = "video"
 
-                try:
-                    video = VideoFileClip(self.arquivo.path)
-                    self.duracao = int(video.duration)
-                    video.close()
-                except Exception as e:
-                    print("Erro ao ler duração do vídeo:", e)
-                    self.duracao = None
+                if not self.duracao:
+                    self.duracao = 0
 
             else:
                 self.tipo = "imagem"
@@ -86,6 +80,7 @@ class PlaylistMidia(models.Model):
     def __str__(self):
         return f"{self.playlist.nome} - {self.nome}"
 
+
 class FilaPlaylist(models.Model):
 
     fila = models.ForeignKey(
@@ -103,10 +98,6 @@ class FilaPlaylist(models.Model):
 
     def __str__(self):
         return f"{self.fila.nome} - {self.playlist.nome}"
-
-
-from django.db import models
-from django.core.exceptions import ValidationError
 
 
 class FilaReproducao(models.Model):
