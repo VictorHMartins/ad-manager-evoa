@@ -13,6 +13,10 @@ ALLOWED_HOSTS = [
     "127.0.0.1"
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://ad-manager-evoa-ad-manager-back.t16vcz.easypanel.host",
+]
+
 INSTALLED_APPS = [
     'corsheaders',
     'django.contrib.admin',
