@@ -92,8 +92,8 @@ class FilaReproducaoSerializer(serializers.ModelSerializer):
         inicio_raw = request.data.get("horario_inicio")
         fim_raw = request.data.get("horario_fim")
 
-        inicio = datetime.strptime(inicio_raw, "%H:%M").time()
-        fim = datetime.strptime(fim_raw, "%H:%M").time()
+        inicio = datetime.strptime(inicio_raw[:5], "%H:%M").time()
+        fim = datetime.strptime(fim_raw[:5], "%H:%M").time()
 
         instance = getattr(self, "instance", None)
 
