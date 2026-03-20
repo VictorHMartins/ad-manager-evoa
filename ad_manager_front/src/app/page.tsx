@@ -173,12 +173,12 @@ export default function DashboardPage() {
                     <div className="w-[60px] h-[35px] rounded overflow-hidden border">
                       {m.tipo === "video" ? (
                         <video
-                          src={`${MEDIA_URL}${m.arquivo}`}
+                          src={m.arquivo} 
                           className="w-full h-full object-cover"
                         />
                       ) : (
                         <img
-                          src={`${MEDIA_URL}${m.arquivo}`}
+                          src={m.arquivo} 
                           className="w-full h-full object-cover"
                         />
                       )}
