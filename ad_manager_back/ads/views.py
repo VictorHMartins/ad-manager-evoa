@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
-
+from django.utils import timezone
 from datetime import datetime
 
 from .models import Playlist, PlaylistMidia, FilaReproducao
@@ -142,7 +142,7 @@ class FilaReproducaoViewSet(viewsets.ModelViewSet):
 @permission_classes([AllowAny])
 def player_api(request):
 
-    now = datetime.now()
+    now = timezone.localtime()
     hora = now.replace(second=0, microsecond=0).time()
     dia = (now.weekday() + 1) % 7
 
