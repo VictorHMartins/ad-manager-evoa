@@ -1,5 +1,5 @@
-const API_URL = "https://ad-manager-evoa-ad-manager-back.t16vcz.easypanel.host"
-const MEDIA_URL = API_URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL as string
+const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL as string
 
 export { API_URL, MEDIA_URL }
 
