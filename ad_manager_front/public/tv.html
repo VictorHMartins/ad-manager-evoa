@@ -7,7 +7,7 @@
 
 <body style="margin:0;background:black;overflow:hidden;">
 
-  <video id="video" autoplay muted playsinline style="width:100vw;height:100vh;object-fit:cover;display:none;"></video>
+  <video id="video" muted playsinline style="width:100vw;height:100vh;object-fit:cover;display:none;"></video>
   <img id="image" style="width:100vw;height:100vh;object-fit:cover;display:none;" />
 
   <script>
@@ -20,6 +20,9 @@
 
     var ultimaAtualizacao = 0
     var intervaloAtualizacao = 60000
+
+    var video = document.getElementById("video")
+    var image = document.getElementById("image")
 
     function limparTimer() {
       if (timer) {
@@ -85,34 +88,19 @@
 
       var m = midias[index]
 
-      var image = document.getElementById("image")
-
       if (m.tipo === "video") {
 
         image.style.display = "none"
 
-        var container = document.body
+        video.style.display = "block"
 
-        var videoAntigo = document.getElementById("video")
-
-        if (videoAntigo) {
-          videoAntigo.parentNode.removeChild(videoAntigo)
-        }
-
-        var video = document.createElement("video")
-
-        video.id = "video"
-        video.autoplay = true
-        video.muted = true
-        video.setAttribute("playsinline", "")
-
-        video.style.width = "100vw"
-        video.style.height = "100vh"
-        video.style.objectFit = "cover"
-
-        container.appendChild(video)
+        video.pause()
+        video.removeAttribute("src")
+        video.load()
 
         video.src = API_URL + m.arquivo
+
+        video.load()
 
         var playPromise = video.play()
 
@@ -127,16 +115,16 @@
           next()
         }
 
+        video.onerror = function () {
+          next()
+        }
+
         timer = setTimeout(next, 60000)
 
       } else {
 
-        var videoAtual = document.getElementById("video")
-
-        if (videoAtual) {
-          videoAtual.pause()
-          videoAtual.style.display = "none"
-        }
+        video.pause()
+        video.style.display = "none"
 
         image.style.display = "block"
         image.src = API_URL + m.arquivo
