@@ -5,7 +5,7 @@
   <title>TV Player</title>
 </head>
 
-<body style="margin:0;background:black;">
+<body style="margin:0;background:black;overflow:hidden;">
 
   <video id="video" autoplay muted playsinline style="width:100vw;height:100vh;object-fit:cover;display:none;"></video>
   <img id="image" style="width:100vw;height:100vh;object-fit:cover;display:none;" />
@@ -16,6 +16,17 @@
 
     var midias = []
     var index = 0
+    var timer = null
+
+    var ultimaAtualizacao = 0
+    var intervaloAtualizacao = 60000
+
+    function limparTimer() {
+      if (timer) {
+        clearTimeout(timer)
+        timer = null
+      }
+    }
 
     function carregar() {
 
@@ -31,9 +42,13 @@
 
             try {
               var data = JSON.parse(xhr.responseText)
+
               midias = data.midias || []
               index = 0
+              ultimaAtualizacao = new Date().getTime()
+
               rodar()
+
             } catch (e) {
               setTimeout(carregar, 5000)
             }
@@ -44,13 +59,27 @@
         }
       }
 
+      xhr.onerror = function () {
+        setTimeout(carregar, 5000)
+      }
+
       xhr.send()
+    }
+
+    function verificarAtualizacao() {
+      var agora = new Date().getTime()
+
+      if (agora - ultimaAtualizacao > intervaloAtualizacao) {
+        carregar()
+      }
     }
 
     function rodar() {
 
+      limparTimer()
+
       if (!midias.length) {
-        setTimeout(carregar, 5000)
+        timer = setTimeout(carregar, 5000)
         return
       }
 
@@ -64,14 +93,27 @@
         image.style.display = "none"
         video.style.display = "block"
 
+        video.pause()
+        video.removeAttribute("src")
+        video.load()
+
         video.src = API_URL + m.arquivo
         video.muted = true
 
-        video.play()
+        var playPromise = video.play()
 
-        video.onended = next
+        if (playPromise !== undefined) {
+          playPromise.catch(function () {
+            video.muted = true
+            video.play()
+          })
+        }
 
-        setTimeout(next, 60000)
+        video.onended = function () {
+          next()
+        }
+
+        timer = setTimeout(next, 60000)
 
       } else {
 
@@ -83,12 +125,17 @@
 
         var tempo = (m.duracao || 10) * 1000
 
-        setTimeout(next, tempo)
+        timer = setTimeout(next, tempo)
       }
     }
 
     function next() {
+      limparTimer()
+
       index = (index + 1) % midias.length
+
+      verificarAtualizacao()
+
       rodar()
     }
 
