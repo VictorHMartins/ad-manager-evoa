@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>TV Player</title>
+</head>
+
+<body style="margin:0;background:black;">
+
+  <video id="video" autoplay muted playsinline style="width:100vw;height:100vh;object-fit:cover;display:none;"></video>
+  <img id="image" style="width:100vw;height:100vh;object-fit:cover;display:none;" />
+
+  <script>
+
+    var API_URL = "https://ad-manager-evoa-ad-manager-back.t16vcz.easypanel.host"
+
+    var midias = []
+    var index = 0
+
+    function carregar() {
+
+      var xhr = new XMLHttpRequest()
+
+      xhr.open("GET", API_URL + "/api/player/", true)
+
+      xhr.onreadystatechange = function () {
+
+        if (xhr.readyState === 4) {
+
+          if (xhr.status === 200) {
+
+            try {
+              var data = JSON.parse(xhr.responseText)
+              midias = data.midias || []
+              index = 0
+              rodar()
+            } catch (e) {
+              setTimeout(carregar, 5000)
+            }
+
+          } else {
+            setTimeout(carregar, 5000)
+          }
+        }
+      }
+
+      xhr.send()
+    }
+
+    function rodar() {
+
+      if (!midias.length) {
+        setTimeout(carregar, 5000)
+        return
+      }
+
+      var m = midias[index]
+
+      var video = document.getElementById("video")
+      var image = document.getElementById("image")
+
+      if (m.tipo === "video") {
+
+        image.style.display = "none"
+        video.style.display = "block"
+
+        video.src = API_URL + m.arquivo
+        video.muted = true
+
+        video.play()
+
+        video.onended = next
+
+        setTimeout(next, 60000)
+
+      } else {
+
+        video.pause()
+        video.style.display = "none"
+
+        image.style.display = "block"
+        image.src = API_URL + m.arquivo
+
+        var tempo = (m.duracao || 10) * 1000
+
+        setTimeout(next, tempo)
+      }
+    }
+
+    function next() {
+      index = (index + 1) % midias.length
+      rodar()
+    }
+
+    carregar()
+
+  </script>
+
+</body>
+</html>
