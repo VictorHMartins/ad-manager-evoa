@@ -1,10 +1,10 @@
 export default function TVPage() {
-  return (
-    <html>
-      <head>
-        <title>Player TV</title>
+    return (
+        <html>
+            <head>
+                <title>Player TV</title>
 
-        <style>{`
+                <style>{`
           body {
             margin: 0;
             background: black;
@@ -17,82 +17,101 @@ export default function TVPage() {
             object-fit: cover;
           }
         `}</style>
-      </head>
+            </head>
 
-      <body>
-        <video id="video" autoPlay muted playsInline></video>
-        <img id="image" style={{ display: "none" }} />
+            <body>
+                <video id="video" autoPlay muted playsInline></video>
+                <img id="image" style={{ display: "none" }} />
 
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              var API_URL = "${process.env.NEXT_PUBLIC_API_URL}"
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+      var API_URL = "${process.env.NEXT_PUBLIC_API_URL}"
 
-              var midias = []
-              var index = 0
+      var midias = []
+      var index = 0
 
-              async function carregar() {
-                try {
-                  var res = await fetch(API_URL + "/api/player/")
-                  var data = await res.json()
+      function carregar() {
 
-                  midias = data.midias || []
-                  index = 0
+        var xhr = new XMLHttpRequest()
 
-                  rodar()
+        xhr.open("GET", API_URL + "/api/player/", true)
 
-                } catch (e) {
-                  setTimeout(carregar, 5000)
-                }
-              }
+        xhr.onreadystatechange = function () {
 
-              function rodar() {
+          if (xhr.readyState === 4 && xhr.status === 200) {
 
-                if (!midias.length) return
+            try {
+              var data = JSON.parse(xhr.responseText)
 
-                var m = midias[index]
+              midias = data.midias || []
+              index = 0
 
-                var video = document.getElementById("video")
-                var image = document.getElementById("image")
+              rodar()
 
-                if (m.tipo === "video") {
+            } catch (e) {
+              setTimeout(carregar, 5000)
+            }
+          }
+        }
 
-                  image.style.display = "none"
-                  video.style.display = "block"
+        xhr.send()
+      }
 
-                  video.src = API_URL + m.arquivo
-                  video.muted = true
+      function rodar() {
 
-                  video.play()
+        if (!midias.length) return
 
-                  video.onended = next
+        var m = midias[index]
 
-                  setTimeout(next, 60000)
+        var video = document.getElementById("video")
+        var image = document.getElementById("image")
 
-                } else {
+        if (m.tipo === "video") {
 
-                  video.pause()
-                  video.style.display = "none"
+          image.style.display = "none"
+          video.style.display = "block"
 
-                  image.style.display = "block"
-                  image.src = API_URL + m.arquivo
+          video.src = API_URL + m.arquivo
+          video.muted = true
 
-                  var tempo = (m.duracao || 10) * 1000
+          var playPromise = video.play()
 
-                  setTimeout(next, tempo)
-                }
-              }
+          if (playPromise !== undefined) {
+            playPromise.catch(function () {
+              video.muted = true
+              video.play()
+            })
+          }
 
-              function next() {
-                index = (index + 1) % midias.length
-                rodar()
-              }
+          video.onended = next
 
-              carregar()
-            `
-          }}
-        />
-      </body>
-    </html>
-  )
+          setTimeout(next, 60000)
+
+        } else {
+
+          video.pause()
+          video.style.display = "none"
+
+          image.style.display = "block"
+          image.src = API_URL + m.arquivo
+
+          var tempo = (m.duracao || 10) * 1000
+
+          setTimeout(next, tempo)
+        }
+      }
+
+      function next() {
+        index = (index + 1) % midias.length
+        rodar()
+      }
+
+      carregar()
+    `
+                    }}
+                />
+            </body>
+        </html>
+    )
 }
