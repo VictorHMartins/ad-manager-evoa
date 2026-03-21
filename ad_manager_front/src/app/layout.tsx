@@ -12,7 +12,7 @@ export default function RootLayout({
   const pathname = usePathname()
 
   const hideSidebar =
-    pathname === "/login" || pathname.startsWith("/player")
+    pathname === "/login" || pathname.startsWith("/player") || pathname.startsWith("/tv")
 
   return (
     <html lang="pt-br">
