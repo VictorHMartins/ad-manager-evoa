@@ -85,20 +85,34 @@
 
       var m = midias[index]
 
-      var video = document.getElementById("video")
       var image = document.getElementById("image")
 
       if (m.tipo === "video") {
 
         image.style.display = "none"
-        video.style.display = "block"
 
-        video.pause()
-        video.removeAttribute("src")
-        video.load()
+        var container = document.body
+
+        var videoAntigo = document.getElementById("video")
+
+        if (videoAntigo) {
+          videoAntigo.parentNode.removeChild(videoAntigo)
+        }
+
+        var video = document.createElement("video")
+
+        video.id = "video"
+        video.autoplay = true
+        video.muted = true
+        video.setAttribute("playsinline", "")
+
+        video.style.width = "100vw"
+        video.style.height = "100vh"
+        video.style.objectFit = "cover"
+
+        container.appendChild(video)
 
         video.src = API_URL + m.arquivo
-        video.muted = true
 
         var playPromise = video.play()
 
@@ -117,8 +131,12 @@
 
       } else {
 
-        video.pause()
-        video.style.display = "none"
+        var videoAtual = document.getElementById("video")
+
+        if (videoAtual) {
+          videoAtual.pause()
+          videoAtual.style.display = "none"
+        }
 
         image.style.display = "block"
         image.src = API_URL + m.arquivo
@@ -131,11 +149,8 @@
 
     function next() {
       limparTimer()
-
       index = (index + 1) % midias.length
-
       verificarAtualizacao()
-
       rodar()
     }
 
