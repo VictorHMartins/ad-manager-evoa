@@ -33,6 +33,7 @@ class PlaylistViewSet(viewsets.ModelViewSet):
             if not arquivo:
                 break
 
+            nome_midia = request.data.get(f"midias[{index}][nome]")
             tipo = request.data.get(f"midias[{index}][tipo]")
             duracao_raw = request.data.get(f"midias[{index}][duracao]")
             ordem = request.data.get(f"midias[{index}][ordem]")
@@ -44,6 +45,7 @@ class PlaylistViewSet(viewsets.ModelViewSet):
 
             PlaylistMidia.objects.create(
                 playlist=playlist,
+                nome=nome_midia or "",
                 arquivo=arquivo,
                 tipo=tipo,
                 duracao=duracao,
@@ -72,6 +74,7 @@ class PlaylistViewSet(viewsets.ModelViewSet):
         while True:
 
             arquivo = request.FILES.get(f"midias[{index}][arquivo]")
+            nome_midia = request.data.get(f"midias[{index}][nome]")
             tipo = request.data.get(f"midias[{index}][tipo]")
             duracao_raw = request.data.get(f"midias[{index}][duracao]")
             ordem = request.data.get(f"midias[{index}][ordem]")
@@ -88,6 +91,7 @@ class PlaylistViewSet(viewsets.ModelViewSet):
             if midia_id:
                 try:
                     midia = PlaylistMidia.objects.get(id=midia_id, playlist=instance)
+                    midia.nome = nome_midia or midia.nome
                     midia.tipo = tipo
                     midia.duracao = duracao
                     midia.ordem = ordem
@@ -104,6 +108,7 @@ class PlaylistViewSet(viewsets.ModelViewSet):
                 if arquivo:
                     PlaylistMidia.objects.create(
                         playlist=instance,
+                        nome=nome_midia or "",
                         arquivo=arquivo,
                         tipo=tipo,
                         duracao=duracao,
