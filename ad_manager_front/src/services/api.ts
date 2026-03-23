@@ -10,10 +10,12 @@ export async function apiFetch(endpoint: string, options: any = {}) {
     ? localStorage.getItem("token")
     : null
 
+  const isFormData = options.body instanceof FormData
+
   const res = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       Authorization: token ? `Bearer ${token}` : "",
       ...(options.headers || {})
     }
@@ -24,7 +26,7 @@ export async function apiFetch(endpoint: string, options: any = {}) {
       localStorage.removeItem("token")
       window.location.href = "/login"
     }
-    return
+    return null
   }
 
   if (!res.ok) {
@@ -39,14 +41,19 @@ export async function apiFetch(endpoint: string, options: any = {}) {
 }
 
 export async function getPlaylist() {
+  try {
 
-  const res = await fetch(`${API_URL}/api/player/`, {
-    cache: "no-store"
-  })
+    const res = await fetch(`${API_URL}/api/player/`, {
+      cache: "no-store"
+    })
 
-  if (!res.ok) {
-    throw new Error("Erro ao buscar playlist")
+    if (!res.ok) {
+      return { midias: [] }
+    }
+
+    return await res.json()
+
+  } catch {
+    return { midias: [] }
   }
-
-  return res.json()
 }

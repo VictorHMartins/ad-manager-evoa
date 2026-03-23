@@ -67,6 +67,7 @@ export default function PlaylistsPage() {
                 form.append(`midias[${index}][arquivo]`, m.arquivo)
             }
 
+            form.append(`midias[${index}][nome]`, m.nome || "")
             form.append(`midias[${index}][tipo]`, m.tipo || "")
             form.append(`midias[${index}][duracao]`, m.duracao || "")
             form.append(`midias[${index}][ordem]`, m.ordem || index + 1)
@@ -155,7 +156,8 @@ export default function PlaylistsPage() {
 
                 {Array.isArray(playlists) && playlists.map((p: any) => {
 
-                    const imagem = p.midias?.[0]?.arquivo
+                    const imagem = p.midias?.find((m: any) => m.tipo === "imagem")?.arquivo
+                    const video = p.midias?.find((m: any) => m.tipo === "video")?.arquivo
 
                     return (
                         <div
@@ -169,6 +171,13 @@ export default function PlaylistsPage() {
                                     <img
                                         src={getImagem(imagem) || ""}
                                         className="w-full h-full object-cover"
+                                    />
+                                ) : video ? (
+                                    <video
+                                        src={getImagem(video) || ""}
+                                        className="w-full h-full object-cover"
+                                        muted
+                                        playsInline
                                     />
                                 ) : (
                                     <ImageIcon className="text-gray-300" size={28} />

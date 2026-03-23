@@ -126,10 +126,16 @@ export default function PlaylistModal({
                   )}
                 </div>
 
-                <div className="text-xs text-gray-500 truncate">
-                  {typeof m.arquivo === "string"
-                    ? m.arquivo.split("/").pop()
-                    : m.arquivo?.name}
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">
+                    Nome
+                  </label>
+
+                  <input
+                    value={m.nome || ""}
+                    onChange={(e) => alterarCampo(i, "nome", e.target.value)}
+                    className="w-full border rounded px-2 py-1 text-sm"
+                  />
                 </div>
 
                 <div>

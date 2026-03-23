@@ -8,6 +8,7 @@ export default function AddMidiaModal({ onAdd, fechar }: any) {
     const [preview, setPreview] = useState<string | null>(null)
     const [tipo, setTipo] = useState<"imagem" | "video" | null>(null)
     const [duracao, setDuracao] = useState<number | "">(10)
+    const [nome, setNome] = useState("")
 
     const [videoDuration, setVideoDuration] = useState<number | null>(null)
 
@@ -23,6 +24,8 @@ export default function AddMidiaModal({ onAdd, fechar }: any) {
 
         const url = URL.createObjectURL(file)
         setPreview(url)
+
+        setNome(file.name.replace(/\.[^/.]+$/, ""))
 
         if (file.type.startsWith("image")) {
             setTipo("imagem")
@@ -47,6 +50,7 @@ export default function AddMidiaModal({ onAdd, fechar }: any) {
         if (!arquivo) return
 
         onAdd({
+            nome,
             arquivo,
             tipo,
             duracao: tipo === "imagem"
@@ -99,6 +103,18 @@ export default function AddMidiaModal({ onAdd, fechar }: any) {
                 {arquivo && (
 
                     <div className="space-y-4">
+
+                        <div>
+                            <label className="text-sm text-gray-600 mb-1 block">
+                                Nome da mídia
+                            </label>
+                            <input
+                                value={nome}
+                                onChange={(e) => setNome(e.target.value)}
+                                className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#ed5b0c]/30"
+                            />
+                        </div>
+
                         {tipo === "imagem" && (
                             <>
                                 <img
@@ -117,14 +133,10 @@ export default function AddMidiaModal({ onAdd, fechar }: any) {
                                             value={duracao}
                                             onChange={(e) => {
                                                 const value = e.target.value
-
                                                 if (/^\d*$/.test(value)) {
-                                                    setDuracao(
-                                                        value === "" ? "" : Number(value)
-                                                    )
+                                                    setDuracao(value === "" ? "" : Number(value))
                                                 }
                                             }}
-                                            placeholder="Ex: 10"
                                             className="w-full border rounded-lg px-3 py-2 pr-12 outline-none focus:ring-2 focus:ring-[#ed5b0c]/30"
                                         />
 
