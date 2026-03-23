@@ -112,7 +112,7 @@ export default function FilasPage() {
                         setFilaSelecionada(null)
                         setOpen(true)
                     }}
-                    className="flex items-center gap-2 bg-[#ed5b0c] hover:bg-[#cf4e0a] text-white px-4 py-2 rounded-lg transition"
+                    className="flex items-center gap-2 bg-[#ed5b0c] hover:bg-[#cf4e0a] text-white px-4 py-2 rounded-lg transition cursor-pointer active:scale-95"
                 >
                     <Plus size={16} />
                     Nova Fila
@@ -163,7 +163,7 @@ export default function FilasPage() {
                             setFilaSelecionada(f)
                             setOpen(true)
                         }}
-                        className="bg-white p-5 rounded-xl shadow hover:shadow-md transition cursor-pointer flex justify-between items-center border border-transparent hover:border-gray-200"
+                        className="bg-white p-5 rounded-xl shadow hover:shadow-md transition cursor-pointer flex justify-between items-center border border-transparent hover:border-gray-200 hover:-translate-y-[2px]"
                     >
 
                         <div className="space-y-1">
@@ -194,7 +194,7 @@ export default function FilasPage() {
                                 setFilaExcluir(f.id)
                                 setConfirmOpen(true)
                             }}
-                            className="text-red-500 hover:text-red-700 transition"
+                            className="text-red-500 hover:text-red-700 transition cursor-pointer"
                         >
                             <Trash2 size={18} />
                         </button>

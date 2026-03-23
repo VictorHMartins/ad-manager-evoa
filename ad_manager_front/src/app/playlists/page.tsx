@@ -144,7 +144,7 @@ export default function PlaylistsPage() {
 
                 <button
                     onClick={abrirNova}
-                    className="flex items-center gap-2 bg-[#ed5b0c] text-white px-4 py-2 rounded-lg hover:opacity-90 transition"
+                    className="flex items-center gap-2 bg-[#ed5b0c] text-white px-4 py-2 rounded-lg hover:opacity-90 transition cursor-pointer active:scale-95"
                 >
                     <Plus size={16} />
                     Nova Playlist
@@ -162,7 +162,8 @@ export default function PlaylistsPage() {
                     return (
                         <div
                             key={p.id}
-                            className="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
+                            onClick={() => abrirEditar(p)}
+                            className="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden cursor-pointer hover:-translate-y-[2px]"
                         >
 
                             <div className="h-[120px] bg-[#f5f6f7] flex items-center justify-center">
@@ -198,19 +199,23 @@ export default function PlaylistsPage() {
                                 <div className="flex justify-between items-center">
 
                                     <button
-                                        onClick={() => abrirEditar(p)}
-                                        className="flex items-center gap-1 text-sm text-[#4b654e] hover:underline"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            abrirEditar(p)
+                                        }}
+                                        className="flex items-center gap-1 text-sm text-[#4b654e] hover:underline cursor-pointer"
                                     >
                                         <Pencil size={14} />
                                         Editar
                                     </button>
 
                                     <button
-                                        onClick={() => {
+                                        onClick={(e) => {
+                                            e.stopPropagation()
                                             setIdExcluir(p.id)
                                             setConfirmOpen(true)
                                         }}
-                                        className="flex items-center gap-1 text-sm text-red-500 hover:underline"
+                                        className="flex items-center gap-1 text-sm text-red-500 hover:underline cursor-pointer"
                                     >
                                         <Trash2 size={14} />
                                         Excluir

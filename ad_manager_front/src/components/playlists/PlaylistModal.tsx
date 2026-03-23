@@ -115,7 +115,7 @@ export default function PlaylistModal({
                 onDragStart={() => handleDragStart(i)}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => handleDrop(i)}
-                className="grid grid-cols-6 gap-4 items-center bg-[#f5f6f7] p-3 rounded-lg cursor-move"
+                className="grid grid-cols-6 gap-4 items-center bg-[#f5f6f7] p-3 rounded-lg cursor-move hover:bg-[#eceff1] transition"
               >
 
                 <div className="w-[80px] h-[60px] rounded overflow-hidden border">
@@ -184,7 +184,7 @@ export default function PlaylistModal({
                     setIndexExcluir(i)
                     setConfirmOpen(true)
                   }}
-                  className="text-red-500 text-sm"
+                  className="text-red-500 text-sm cursor-pointer hover:underline"
                 >
                   Remover
                 </button>
@@ -197,7 +197,7 @@ export default function PlaylistModal({
 
         <button
           onClick={() => setAddOpen(true)}
-          className="text-sm text-[#ed5b0c] mb-4"
+          className="text-sm text-[#ed5b0c] mb-4 cursor-pointer hover:underline"
         >
           + Adicionar mídia
         </button>
@@ -206,14 +206,14 @@ export default function PlaylistModal({
 
           <button
             onClick={fechar}
-            className="px-4 py-2 text-sm"
+            className="px-4 py-2 text-sm cursor-pointer"
           >
             Cancelar
           </button>
 
           <button
             onClick={salvar}
-            className="bg-[#ed5b0c] text-white px-4 py-2 rounded-lg"
+            className="bg-[#ed5b0c] text-white px-4 py-2 rounded-lg cursor-pointer active:scale-95 transition"
           >
             Salvar
           </button>

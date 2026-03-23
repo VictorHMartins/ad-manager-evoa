@@ -176,13 +176,13 @@ export default function AddMidiaModal({ onAdd, fechar }: any) {
 
                 <div className="flex justify-end gap-2 mt-6">
 
-                    <button onClick={fechar}>
+                    <button onClick={fechar} className="cursor-pointer">
                         Cancelar
                     </button>
 
                     <button
                         onClick={confirmar}
-                        className="bg-[#ed5b0c] text-white px-4 py-2 rounded"
+                        className="bg-[#ed5b0c] text-white px-4 py-2 rounded cursor-pointer active:scale-95 transition"
                     >
                         Adicionar
                     </button>

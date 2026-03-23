@@ -186,7 +186,7 @@ export default function FilaModal({ fila, fechar }: any) {
 
                     <button
                         onClick={selecionarTodosDias}
-                        className={`px-3 py-1 rounded ${todosDias ? "bg-[#ed5b0c] text-white" : "bg-gray-200"}`}
+                        className={`px-3 py-1 rounded cursor-pointer transition ${todosDias ? "bg-[#ed5b0c] text-white" : "bg-gray-200"}`}
                     >
                         Todos
                     </button>
@@ -195,7 +195,7 @@ export default function FilaModal({ fila, fechar }: any) {
                         <button
                             key={d}
                             onClick={() => toggleDia(d)}
-                            className={`px-3 py-1 rounded ${dias.includes(d) ? "bg-[#ed5b0c] text-white" : "bg-gray-200"}`}
+                            className={`px-3 py-1 rounded cursor-pointer transition ${dias.includes(d) ? "bg-[#ed5b0c] text-white" : "bg-gray-200"}`}
                         >
                             {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"][d]}
                         </button>
@@ -314,21 +314,21 @@ export default function FilaModal({ fila, fechar }: any) {
 
                                     <button
                                         onClick={() => subir(index)}
-                                        className="p-1 rounded hover:bg-gray-100"
+                                        className="p-1 rounded hover:bg-gray-100 cursor-pointer transition"
                                     >
                                         <ArrowUp size={16} />
                                     </button>
 
                                     <button
                                         onClick={() => descer(index)}
-                                        className="p-1 rounded hover:bg-gray-100"
+                                        className="p-1 rounded hover:bg-gray-100 cursor-pointer transition"
                                     >
                                         <ArrowDown size={16} />
                                     </button>
 
                                     <button
                                         onClick={() => removerPlaylist(p.id)}
-                                        className="p-1 rounded hover:bg-red-50"
+                                        className="p-1 rounded hover:bg-red-50 cursor-pointer transition"
                                     >
                                         <Trash2 size={16} className="text-red-500" />
                                     </button>
@@ -344,8 +344,8 @@ export default function FilaModal({ fila, fechar }: any) {
                 </div>
 
                 <div className="flex justify-end gap-2">
-                    <button onClick={fechar}>Cancelar</button>
-                    <button onClick={salvar} className="bg-[#ed5b0c] text-white px-4 py-2 rounded">
+                    <button onClick={fechar} className="cursor-pointer">Cancelar</button>
+                    <button onClick={salvar} className="bg-[#ed5b0c] text-white px-4 py-2 rounded cursor-pointer active:scale-95 transition">
                         Salvar
                     </button>
                 </div>
