@@ -40,6 +40,28 @@ export default function Player() {
     }, 300)
   }
 
+  useEffect(() => {
+
+    const interval1 = setInterval(() => {
+      try {
+        document.body.dispatchEvent(new Event("mousemove"))
+      } catch {}
+    }, 20000)
+
+    const interval2 = setInterval(() => {
+      document.body.style.transform = "scale(1.0001)"
+      setTimeout(() => {
+        document.body.style.transform = "scale(1)"
+      }, 300)
+    }, 30000)
+
+    return () => {
+      clearInterval(interval1)
+      clearInterval(interval2)
+    }
+
+  }, [])
+
   if (!midias.length) {
     return (
       <div className="w-screen h-screen flex items-center justify-center bg-black text-white">
@@ -53,8 +75,18 @@ export default function Player() {
   return (
     <div className="w-screen h-screen bg-black overflow-hidden">
 
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{ position: "absolute", width: "1px", height: "1px", opacity: 0 }}
+      >
+        <source src="/blank.mp4" type="video/mp4" />
+      </video>
+
       <div className={`w-full h-full transition-opacity duration-300 ${fade ? "opacity-100" : "opacity-0"}`}>
-        
+
         {atual.tipo === "imagem" && (
           <ImageSlide
             src={`${MEDIA_URL}${atual.arquivo}`}
