@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { API_URL } from "@/src/services/api"
+import { apiFetch } from "@/src/services/api"
 import { ArrowUp, ArrowDown, Trash2 } from "lucide-react"
 
 export default function FilaModal({ fila, fechar }: any) {
@@ -43,14 +43,12 @@ export default function FilaModal({ fila, fechar }: any) {
     }, [fila])
 
     async function carregarPlaylists() {
-        const token = localStorage.getItem("token")
-
-        const res = await fetch(`${API_URL}/api/playlists/`, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-
-        const data = await res.json()
-        setPlaylists(data)
+        try {
+            const data = await apiFetch("/api/playlists/")
+            setPlaylists(Array.isArray(data) ? data : data?.results || [])
+        } catch {
+            setPlaylists([])
+        }
     }
 
     function adicionarPlaylist(p: any) {
@@ -115,8 +113,6 @@ export default function FilaModal({ fila, fechar }: any) {
 
         setErro("")
 
-        const token = localStorage.getItem("token")
-
         const form = new FormData()
 
         form.append("nome", nome)
@@ -129,35 +125,25 @@ export default function FilaModal({ fila, fechar }: any) {
             form.append(`playlists[${i}][ordem]`, String(p.ordem))
         })
 
-        const url = fila
-            ? `${API_URL}/api/filas/${fila.id}/`
-            : `${API_URL}/api/filas/`
+        try {
 
-        const method = fila ? "PUT" : "POST"
-
-        const res = await fetch(url, {
-            method,
-            headers: { Authorization: `Bearer ${token}` },
-            body: form
-        })
-
-        const data = await res.json()
-
-        if (!res.ok) {
-
-            if (data.non_field_errors) {
-                setErro(data.non_field_errors[0])
-            } else if (typeof data === "object") {
-                const firstKey = Object.keys(data)[0]
-                setErro(data[firstKey][0])
+            if (fila) {
+                await apiFetch(`/api/filas/${fila.id}/`, {
+                    method: "PUT",
+                    body: form
+                })
             } else {
-                setErro("Erro ao salvar")
+                await apiFetch("/api/filas/", {
+                    method: "POST",
+                    body: form
+                })
             }
 
-            return
-        }
+            fechar()
 
-        fechar()
+        } catch (err: any) {
+            setErro("Erro ao salvar fila")
+        }
     }
 
     return (

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { API_URL, MEDIA_URL } from "@/src/services/api"
+import { apiFetch, MEDIA_URL } from "@/src/services/api"
 import { Plus, Pencil, Trash2, Image as ImageIcon } from "lucide-react"
 import PlaylistModal from "@/src/components/playlists/PlaylistModal"
 import ConfirmModal from "@/src/components/ConfirmModal"
@@ -17,17 +17,12 @@ export default function PlaylistsPage() {
     const [idExcluir, setIdExcluir] = useState<number | null>(null)
 
     async function carregar() {
-
-        const token = localStorage.getItem("token")
-
-        const res = await fetch(`${API_URL}/api/playlists/`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
-
-        const data = await res.json()
-        setPlaylists(Array.isArray(data) ? data : data.results || [])
+        try {
+            const data = await apiFetch("/api/playlists/")
+            setPlaylists(Array.isArray(data) ? data : data?.results || [])
+        } catch {
+            setPlaylists([])
+        }
     }
 
     useEffect(() => {
@@ -50,8 +45,6 @@ export default function PlaylistsPage() {
 
     async function salvar() {
 
-        const token = localStorage.getItem("token")
-
         const form = new FormData()
 
         form.append("nome", nome || "")
@@ -73,44 +66,44 @@ export default function PlaylistsPage() {
             form.append(`midias[${index}][ordem]`, m.ordem || index + 1)
         })
 
-        if (editando) {
-            await fetch(`${API_URL}/api/playlists/${editando.id}/`, {
-                method: "PUT",
-                headers: {
-                    Authorization: `Bearer ${token}`
-                },
-                body: form
-            })
-        } else {
-            await fetch(`${API_URL}/api/playlists/`, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`
-                },
-                body: form
-            })
-        }
+        try {
 
-        setOpenModal(false)
-        carregar()
+            if (editando) {
+                await apiFetch(`/api/playlists/${editando.id}/`, {
+                    method: "PUT",
+                    body: form
+                })
+            } else {
+                await apiFetch("/api/playlists/", {
+                    method: "POST",
+                    body: form
+                })
+            }
+
+            setOpenModal(false)
+            carregar()
+
+        } catch {
+            console.log("Erro ao salvar playlist")
+        }
     }
 
     async function confirmarExclusao() {
 
         if (!idExcluir) return
 
-        const token = localStorage.getItem("token")
+        try {
+            await apiFetch(`/api/playlists/${idExcluir}/`, {
+                method: "DELETE"
+            })
 
-        await fetch(`${API_URL}/api/playlists/${idExcluir}/`, {
-            method: "DELETE",
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
+            setConfirmOpen(false)
+            setIdExcluir(null)
+            carregar()
 
-        setConfirmOpen(false)
-        setIdExcluir(null)
-        carregar()
+        } catch {
+            console.log("Erro ao excluir")
+        }
     }
 
     function getImagem(src: any) {

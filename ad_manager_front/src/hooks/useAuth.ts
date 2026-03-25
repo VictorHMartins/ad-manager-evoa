@@ -3,6 +3,17 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
+function isTokenValid(token: string) {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]))
+    const now = Date.now() / 1000
+
+    return payload.exp > now
+  } catch {
+    return false
+  }
+}
+
 export function useAuth() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -11,7 +22,8 @@ export function useAuth() {
   useEffect(() => {
     const token = localStorage.getItem("token")
 
-    if (!token) {
+    if (!token || !isTokenValid(token)) {
+      localStorage.removeItem("token")
       router.push("/login")
     } else {
       setIsAuthenticated(true)

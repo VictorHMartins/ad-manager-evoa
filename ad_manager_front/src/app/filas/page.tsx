@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { API_URL } from "@/src/services/api"
+import { apiFetch } from "@/src/services/api"
 import { Plus, Trash2, Search, Calendar } from "lucide-react"
 import FilaModal from "@/src/components/filas/FilaModal"
 import ConfirmModal from "@/src/components/ConfirmModal"
@@ -21,17 +21,17 @@ export default function FilasPage() {
     const [filaExcluir, setFilaExcluir] = useState<number | null>(null)
 
     async function carregar() {
-        const token = localStorage.getItem("token")
+        try {
+            const data = await apiFetch("/api/filas/")
+            const lista = Array.isArray(data) ? data : data?.results || []
 
-        const res = await fetch(`${API_URL}/api/filas/`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
+            setFilas(lista)
+            setFiltradas(lista)
 
-        const data = await res.json()
-        setFilas(data)
-        setFiltradas(data)
+        } catch {
+            setFilas([])
+            setFiltradas([])
+        }
     }
 
     useEffect(() => {
@@ -57,23 +57,20 @@ export default function FilasPage() {
     }, [busca, diaFiltro, filas])
 
     async function confirmarExclusao() {
+
         if (filaExcluir === null) return
 
-        const token = localStorage.getItem("token")
+        try {
+            await apiFetch(`/api/filas/${filaExcluir}/`, {
+                method: "DELETE"
+            })
 
-        const res = await fetch(`${API_URL}/api/filas/${filaExcluir}/`, {
-            method: "DELETE",
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
-
-        if (res.ok) {
             setConfirmOpen(false)
             setFilaExcluir(null)
             carregar()
-        } else {
-            console.log("Erro ao excluir", res.status)
+
+        } catch {
+            console.log("Erro ao excluir")
         }
     }
 

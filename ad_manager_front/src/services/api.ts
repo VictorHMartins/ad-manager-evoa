@@ -3,7 +3,6 @@ const MEDIA_URL = process.env.NEXT_PUBLIC_MEDIA_URL as string
 
 export { API_URL, MEDIA_URL }
 
-
 export async function apiFetch(endpoint: string, options: any = {}) {
 
   const token = typeof window !== "undefined"
@@ -12,32 +11,40 @@ export async function apiFetch(endpoint: string, options: any = {}) {
 
   const isFormData = options.body instanceof FormData
 
-  const res = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      ...(isFormData ? {} : { "Content-Type": "application/json" }),
-      Authorization: token ? `Bearer ${token}` : "",
-      ...(options.headers || {})
+  try {
+
+    const res = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
+        Authorization: token ? `Bearer ${token}` : "",
+        ...(options.headers || {})
+      }
+    })
+
+    if (res.status === 401) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token")
+        window.location.href = "/login"
+      }
+      throw new Error("Unauthorized")
     }
-  })
 
-  if (res.status === 401) {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token")
-      window.location.href = "/login"
+    if (res.status === 204) {
+      return null
     }
-    return null
-  }
 
-  if (!res.ok) {
-    throw new Error("Erro na requisição")
-  }
+    const text = await res.text()
 
-  if (res.status === 204) {
-    return null
-  }
+    try {
+      return text ? JSON.parse(text) : null
+    } catch {
+      return null
+    }
 
-  return res.json()
+  } catch (err) {
+    throw err
+  }
 }
 
 export async function getPlaylist() {
@@ -51,7 +58,13 @@ export async function getPlaylist() {
       return { midias: [] }
     }
 
-    return await res.json()
+    const text = await res.text()
+
+    try {
+      return text ? JSON.parse(text) : { midias: [] }
+    } catch {
+      return { midias: [] }
+    }
 
   } catch {
     return { midias: [] }

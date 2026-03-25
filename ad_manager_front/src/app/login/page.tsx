@@ -31,6 +31,8 @@ export default function LoginPage() {
 
     try {
 
+      localStorage.removeItem("token")
+
       const res = await fetch(`${API_URL}/api/token/`, {
         method: "POST",
         headers: {
@@ -42,7 +44,15 @@ export default function LoginPage() {
         })
       })
 
-      const data = await res.json()
+      const text = await res.text()
+
+      let data: any = {}
+
+      try {
+        data = text ? JSON.parse(text) : {}
+      } catch {
+        data = {}
+      }
 
       if (!res.ok) {
         setError("Usuário ou senha inválidos")
@@ -54,7 +64,7 @@ export default function LoginPage() {
 
       router.push("/")
 
-    } catch (err) {
+    } catch {
 
       setError("Erro ao conectar com o servidor")
 

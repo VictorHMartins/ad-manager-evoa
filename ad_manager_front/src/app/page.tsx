@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { API_URL, MEDIA_URL } from "@/src/services/api"
+import { apiFetch, getPlaylist, MEDIA_URL } from "@/src/services/api"
 import { useAuth } from "@/src/hooks/useAuth"
 import Image from "next/image"
 import { Plus, ListVideo, Clock, PlayCircle } from "lucide-react"
@@ -22,25 +22,15 @@ export default function DashboardPage() {
 
   async function carregar() {
     try {
-      const token = localStorage.getItem("token")
 
-      const [p, f] = await Promise.all([
-        fetch(`${API_URL}/api/player/`),
-        fetch(`${API_URL}/api/filas/`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+      const [playerData, filasData] = await Promise.all([
+        getPlaylist(),
+        apiFetch("/api/filas/")
       ])
-
-      const playerData = await p.json()
-      const filasData = await f.json()
 
       setPlayer(playerData)
 
-      if (Array.isArray(filasData)) {
-        setFilas(filasData)
-      } else {
-        setFilas([])
-      }
+      setFilas(Array.isArray(filasData) ? filasData : filasData?.results || [])
 
     } catch {
       setFilas([])
