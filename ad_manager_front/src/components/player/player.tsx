@@ -73,34 +73,39 @@ export default function Player() {
   const atual = midias[index]
 
   return (
-    <div className="w-screen h-screen bg-black overflow-hidden">
+    <div className="w-screen h-screen bg-black overflow-hidden relative">
 
       <video
         autoPlay
-        muted
         loop
         playsInline
-        style={{ position: "absolute", width: "1px", height: "1px", opacity: 0 }}
+        muted
+        className="absolute top-0 left-0 w-full h-full object-cover"
+        style={{ opacity: 0.01, zIndex: 0 }}
       >
         <source src="/blank.mp4" type="video/mp4" />
       </video>
 
-      <div className={`w-full h-full transition-opacity duration-300 ${fade ? "opacity-100" : "opacity-0"}`}>
+      <div className="relative z-10 w-full h-full">
 
-        {atual.tipo === "imagem" && (
-          <ImageSlide
-            src={`${MEDIA_URL}${atual.arquivo}`}
-            duracao={atual.duracao}
-            onEnd={next}
-          />
-        )}
+        <div className={`w-full h-full transition-opacity duration-300 ${fade ? "opacity-100" : "opacity-0"}`}>
 
-        {atual.tipo === "video" && (
-          <VideoSlide
-            src={`${MEDIA_URL}${atual.arquivo}`}
-            onEnd={next}
-          />
-        )}
+          {atual.tipo === "imagem" && (
+            <ImageSlide
+              src={`${MEDIA_URL}${atual.arquivo}`}
+              duracao={atual.duracao}
+              onEnd={next}
+            />
+          )}
+
+          {atual.tipo === "video" && (
+            <VideoSlide
+              src={`${MEDIA_URL}${atual.arquivo}`}
+              onEnd={next}
+            />
+          )}
+
+        </div>
 
       </div>
 
