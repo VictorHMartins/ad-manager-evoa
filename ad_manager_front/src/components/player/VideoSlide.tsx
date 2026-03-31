@@ -8,42 +8,36 @@ export default function VideoSlide({ src, onEnd }: any) {
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
-
     video.pause()
-    video.removeAttribute('src')
+    video.src = src
     video.load()
-    video.muted = false 
-    
-    const playPromise = video.play()
-
-    if (playPromise !== undefined) {
-      playPromise.catch((error) => {
-        console.warn("Auto-play com som bloqueado, tentando mudo:", error)
+    const tentarReproduzir = async () => {
+      try {
+        video.muted = false
+        await video.play()
+      } catch (error) {
+        console.warn("Autoplay com áudio bloqueado. Reproduzindo mudo.")
         video.muted = true
-        video.play()
-      })
+        await video.play()
+      }
     }
 
+    tentarReproduzir()
+
     return () => {
-      if (video) {
-        video.pause()
-        video.src = ""
-        video.load()
-      }
+      video.pause()
+      video.src = ""
     }
   }, [src])
 
   return (
     <video
       ref={videoRef}
-      key={src}
-      src={src}
-      autoPlay
+      key={src} 
       playsInline
       preload="auto"
       onEnded={onEnd}
-      className="w-full h-full object-cover"
-      style={{ backgroundColor: 'black' }} 
+      className="w-full h-full object-cover bg-black"
     />
   )
 }
