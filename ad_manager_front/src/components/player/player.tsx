@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { getPlaylist, MEDIA_URL } from "@/src/services/api"
 import ImageSlide from "./ImageSlide"
 import VideoSlide from "./VideoSlide"
@@ -10,69 +10,110 @@ export default function Player() {
   const [index, setIndex] = useState(0)
   const [fade, setFade] = useState(true)
 
+  const ultimaAtualizacao = useRef(0)
+  const intervaloAtualizacao = 60000
+
+  const midiasRef = useRef<any[]>([])
+  const novaMidiaRef = useRef<any[] | null>(null)
+
   const carregar = useCallback(async () => {
     try {
       const data = await getPlaylist()
+
       if (data?.midias && data.midias.length > 0) {
-        setMidias(data.midias)
-        setIndex(0)
+
+        const atual = JSON.stringify(midiasRef.current)
+        const nova = JSON.stringify(data.midias)
+
+        if (atual !== nova) {
+          novaMidiaRef.current = data.midias
+        }
+
+        ultimaAtualizacao.current = Date.now()
+
       } else {
         setTimeout(carregar, 5000)
       }
+
     } catch {
       setTimeout(carregar, 5000)
     }
   }, [])
+
+  function aplicarAtualizacaoSeNecessario() {
+    if (novaMidiaRef.current) {
+      midiasRef.current = novaMidiaRef.current
+      setMidias(novaMidiaRef.current)
+      setIndex(0)
+      novaMidiaRef.current = null
+    }
+  }
+
+  function verificarAtualizacao() {
+    const agora = Date.now()
+
+    if (agora - ultimaAtualizacao.current > intervaloAtualizacao) {
+      carregar()
+    }
+  }
 
   useEffect(() => {
     carregar()
   }, [carregar])
 
   useEffect(() => {
-    let wakeLock: any = null;
+    midiasRef.current = midias
+  }, [midias])
+
+  useEffect(() => {
+    let wakeLock: any = null
 
     const requestWakeLock = async () => {
       try {
         if ("wakeLock" in navigator) {
-          wakeLock = await (navigator as any).wakeLock.request("screen");
-          console.log("Wake Lock ativado");
+          wakeLock = await (navigator as any).wakeLock.request("screen")
         }
-      } catch (err) {
-        console.error("Erro ao ativar Wake Lock:", err);
-      }
-    };
+      } catch {}
+    }
 
-    requestWakeLock();
+    requestWakeLock()
 
     const handleVisibilityChange = () => {
       if (wakeLock !== null && document.visibilityState === "visible") {
-        requestWakeLock();
+        requestWakeLock()
       }
-    };
+    }
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, []);
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
+  }, [])
 
   useEffect(() => {
     const interval = setInterval(() => {
-      window.scrollBy(0, 1);
-      window.scrollBy(0, -1);
-      const ev = new MouseEvent('click', {
+      window.scrollBy(0, 1)
+      window.scrollBy(0, -1)
+
+      const ev = new MouseEvent("click", {
         view: window,
         bubbles: true,
         cancelable: true
-      });
-      document.body.dispatchEvent(ev);
-    }, 30000);
+      })
 
-    return () => clearInterval(interval);
-  }, []);
+      document.body.dispatchEvent(ev)
+    }, 30000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   function next() {
     setFade(false)
+
     setTimeout(() => {
-      setIndex((prev) => (prev + 1) % midias.length)
+      verificarAtualizacao()
+      aplicarAtualizacaoSeNecessario()
+
+      setIndex((prev) => (prev + 1) % midiasRef.current.length)
+
       setFade(true)
     }, 300)
   }
