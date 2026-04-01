@@ -22,11 +22,21 @@ export default function Player() {
 
       if (data?.midias && data.midias.length > 0) {
 
-        const atual = JSON.stringify(midiasRef.current)
-        const nova = JSON.stringify(data.midias)
+        if (midiasRef.current.length === 0) {
 
-        if (atual !== nova) {
-          novaMidiaRef.current = data.midias
+          midiasRef.current = data.midias
+          setMidias(data.midias)
+          setIndex(0)
+
+        } else {
+
+          const atual = JSON.stringify(midiasRef.current)
+          const nova = JSON.stringify(data.midias)
+
+          if (atual !== nova) {
+            novaMidiaRef.current = data.midias
+          }
+
         }
 
         ultimaAtualizacao.current = Date.now()
@@ -40,21 +50,22 @@ export default function Player() {
     }
   }, [])
 
-  function aplicarAtualizacaoSeNecessario() {
-    if (novaMidiaRef.current) {
-      midiasRef.current = novaMidiaRef.current
-      setMidias(novaMidiaRef.current)
-      setIndex(0)
-      novaMidiaRef.current = null
-    }
-  }
-
   function verificarAtualizacao() {
     const agora = Date.now()
 
     if (agora - ultimaAtualizacao.current > intervaloAtualizacao) {
       carregar()
     }
+  }
+
+  function aplicarAtualizacaoSeNecessario(proximoIndex: number) {
+    if (novaMidiaRef.current && proximoIndex === 0) {
+      midiasRef.current = novaMidiaRef.current
+      setMidias(novaMidiaRef.current)
+      novaMidiaRef.current = null
+      return true
+    }
+    return false
   }
 
   useEffect(() => {
@@ -110,9 +121,17 @@ export default function Player() {
 
     setTimeout(() => {
       verificarAtualizacao()
-      aplicarAtualizacaoSeNecessario()
 
-      setIndex((prev) => (prev + 1) % midiasRef.current.length)
+      const total = midiasRef.current.length
+      const proximoIndex = (index + 1) % total
+
+      const atualizou = aplicarAtualizacaoSeNecessario(proximoIndex)
+
+      if (atualizou) {
+        setIndex(0)
+      } else {
+        setIndex(proximoIndex)
+      }
 
       setFade(true)
     }, 300)

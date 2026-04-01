@@ -47,14 +47,30 @@
             try {
               var data = JSON.parse(xhr.responseText)
 
-              var atual = JSON.stringify(midias)
-              var nova = JSON.stringify(data.midias || [])
+              if (data.midias && data.midias.length > 0) {
 
-              if (atual !== nova) {
-                novaMidia = data.midias || []
+                if (midias.length === 0) {
+
+                  midias = data.midias
+                  index = 0
+                  rodar()
+
+                } else {
+
+                  var atual = JSON.stringify(midias)
+                  var nova = JSON.stringify(data.midias)
+
+                  if (atual !== nova) {
+                    novaMidia = data.midias
+                  }
+
+                }
+
+                ultimaAtualizacao = new Date().getTime()
+
+              } else {
+                setTimeout(carregar, 5000)
               }
-
-              ultimaAtualizacao = new Date().getTime()
 
             } catch (e) {
               setTimeout(carregar, 5000)
@@ -104,7 +120,6 @@
       if (m.tipo === "video") {
 
         image.style.display = "none"
-
         video.style.display = "block"
 
         video.pause()
@@ -112,7 +127,6 @@
         video.load()
 
         video.src = API_URL + m.arquivo
-
         video.load()
 
         var playPromise = video.play()
