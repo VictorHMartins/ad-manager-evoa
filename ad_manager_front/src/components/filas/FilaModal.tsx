@@ -9,6 +9,8 @@ export default function FilaModal({ fila, fechar }: any) {
     const [nome, setNome] = useState("")
     const [playlists, setPlaylists] = useState<any[]>([])
     const [selecionadas, setSelecionadas] = useState<any[]>([])
+    const [dispositivos, setDispositivos] = useState<any[]>([])
+    const [dispositivoId, setDispositivoId] = useState<string>("")
 
     const [inicio, setInicio] = useState("")
     const [fim, setFim] = useState("")
@@ -20,6 +22,7 @@ export default function FilaModal({ fila, fechar }: any) {
 
     useEffect(() => {
         carregarPlaylists()
+        carregarDispositivos()
     }, [])
 
     useEffect(() => {
@@ -29,6 +32,7 @@ export default function FilaModal({ fila, fechar }: any) {
             setFim(fila.horario_fim || "")
             setDias(fila.dias_semana || [])
             setTodosDias((fila.dias_semana || []).length === 7)
+            setDispositivoId(fila.dispositivo ? String(fila.dispositivo) : "")
 
             if (fila.playlists) {
                 setSelecionadas(
@@ -48,6 +52,15 @@ export default function FilaModal({ fila, fechar }: any) {
             setPlaylists(Array.isArray(data) ? data : data?.results || [])
         } catch {
             setPlaylists([])
+        }
+    }
+
+    async function carregarDispositivos() {
+        try {
+            const data = await apiFetch("/api/dispositivos/")
+            setDispositivos(Array.isArray(data) ? data : data?.results || [])
+        } catch {
+            setDispositivos([])
         }
     }
 
@@ -120,6 +133,10 @@ export default function FilaModal({ fila, fechar }: any) {
         form.append("horario_fim", fim)
         form.append("dias_semana", JSON.stringify(dias))
 
+        if (dispositivoId) {
+            form.append("dispositivo", dispositivoId)
+        }
+
         selecionadas.forEach((p, i) => {
             form.append(`playlists[${i}][playlist]`, String(p.id))
             form.append(`playlists[${i}][ordem]`, String(p.ordem))
@@ -167,6 +184,22 @@ export default function FilaModal({ fila, fechar }: any) {
                     onChange={(e) => setNome(e.target.value)}
                     className="w-full border rounded px-3 py-2"
                 />
+
+                <div>
+                    <label className="text-xs text-gray-500 mb-1 block">TV associada</label>
+                    <select
+                        value={dispositivoId}
+                        onChange={(e) => setDispositivoId(e.target.value)}
+                        className="w-full border rounded px-3 py-2 text-sm"
+                    >
+                        <option value="">Sem TV específica (legado)</option>
+                        {dispositivos.map((d: any) => (
+                            <option key={d.id} value={String(d.id)}>
+                                {d.nome} ({d.codigo})
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
                 <div className="flex gap-2 flex-wrap">
 

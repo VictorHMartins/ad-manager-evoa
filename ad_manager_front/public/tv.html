@@ -3,16 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <title>TV Player</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      overflow: hidden;
+    }
+
+    /* Orientação vertical: rotaciona o conteúdo para TVs em modo landscape
+       exibindo conteúdo portrait. Aplicado via JS quando orientacao === "v". */
+    body.tv-vertical #conteudo {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 100vh;
+      height: 100vw;
+      transform: translate(-50%, -50%) rotate(-90deg);
+    }
+  </style>
 </head>
 
-<body style="margin:0;background:black;overflow:hidden;">
+<body>
 
-  <video id="video" muted playsinline style="width:100vw;height:100vh;object-fit:cover;display:none;"></video>
-  <img id="image" style="width:100vw;height:100vh;object-fit:cover;display:none;" />
+  <div id="conteudo" style="width:100vw;height:100vh;position:relative;">
+    <video id="video" muted playsinline style="width:100%;height:100%;object-fit:cover;display:none;position:absolute;top:0;left:0;"></video>
+    <img id="image" style="width:100%;height:100%;object-fit:cover;display:none;position:absolute;top:0;left:0;" />
+  </div>
 
   <script>
 
     var API_URL = "https://ad-manager-evoa-ad-manager-back.t16vcz.easypanel.host"
+
+    // Lê o código da TV da query string: /tv.html?tv=CODIGO
+    var params = new URLSearchParams(window.location.search)
+    var tvCode = params.get('tv') || ''
+
+    if (!tvCode) {
+      document.body.innerHTML = '<div style="color:white;font-family:sans-serif;text-align:center;padding-top:40vh;">'
+        + '<p style="font-size:1.2em;">Código de TV não informado.</p>'
+        + '<p style="color:#aaa;">Use: /tv.html?tv=CODIGO</p>'
+        + '</div>'
+    }
 
     var midias = []
     var novaMidia = null
@@ -32,11 +63,21 @@
       }
     }
 
+    function aplicarOrientacao(orientacao) {
+      if (orientacao === 'v') {
+        document.body.classList.add('tv-vertical')
+      } else {
+        document.body.classList.remove('tv-vertical')
+      }
+    }
+
     function carregar() {
+
+      if (!tvCode) return
 
       var xhr = new XMLHttpRequest()
 
-      xhr.open("GET", API_URL + "/api/player/", true)
+      xhr.open("GET", API_URL + "/api/player/" + tvCode + "/", true)
 
       xhr.onreadystatechange = function () {
 
@@ -46,6 +87,11 @@
 
             try {
               var data = JSON.parse(xhr.responseText)
+
+              // Aplica orientação sempre que receber resposta do servidor
+              if (data.orientacao) {
+                aplicarOrientacao(data.orientacao)
+              }
 
               if (data.midias && data.midias.length > 0) {
 
@@ -122,6 +168,8 @@
         image.style.display = "none"
         video.style.display = "block"
 
+        // Reset completo do buffer — necessário para TVs que corrompem
+        // o estado interno do elemento <video> entre reproduções
         video.pause()
         video.removeAttribute("src")
         video.load()
@@ -146,6 +194,7 @@
           next()
         }
 
+        // Timeout de segurança: avança após 60s se o vídeo não terminar
         timer = setTimeout(next, 60000)
 
       } else {

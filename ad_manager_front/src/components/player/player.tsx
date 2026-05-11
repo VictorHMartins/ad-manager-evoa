@@ -5,10 +5,15 @@ import { getPlaylist, MEDIA_URL } from "@/src/services/api"
 import ImageSlide from "./ImageSlide"
 import VideoSlide from "./VideoSlide"
 
-export default function Player() {
+interface PlayerProps {
+  codigo: string
+}
+
+export default function Player({ codigo }: PlayerProps) {
   const [midias, setMidias] = useState<any[]>([])
   const [index, setIndex] = useState(0)
   const [fade, setFade] = useState(true)
+  const [orientacao, setOrientacao] = useState<"h" | "v">("h")
 
   const ultimaAtualizacao = useRef(0)
   const intervaloAtualizacao = 60000
@@ -18,7 +23,11 @@ export default function Player() {
 
   const carregar = useCallback(async () => {
     try {
-      const data = await getPlaylist()
+      const data = await getPlaylist(codigo)
+
+      if (data?.orientacao) {
+        setOrientacao(data.orientacao)
+      }
 
       if (data?.midias && data.midias.length > 0) {
 
@@ -48,7 +57,7 @@ export default function Player() {
     } catch {
       setTimeout(carregar, 5000)
     }
-  }, [])
+  }, [codigo])
 
   function verificarAtualizacao() {
     const agora = Date.now()
@@ -76,6 +85,7 @@ export default function Player() {
     midiasRef.current = midias
   }, [midias])
 
+  // Wake Lock — mantém tela ativa em browsers modernos
   useEffect(() => {
     let wakeLock: any = null
 
@@ -99,6 +109,7 @@ export default function Player() {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
   }, [])
 
+  // Anti-standby — eventos periódicos para TVs sem Wake Lock
   useEffect(() => {
     const interval = setInterval(() => {
       window.scrollBy(0, 1)
@@ -140,15 +151,31 @@ export default function Player() {
   if (!midias.length) {
     return (
       <div className="w-screen h-screen flex items-center justify-center bg-black text-white">
-        Carregando...
+        Nenhuma fila de reprodução selecionada para esse horario...
       </div>
     )
   }
 
   const atual = midias[index]
 
+  // Estilos para orientação vertical (TV em landscape reproduzindo conteúdo portrait)
+  const verticalStyle: React.CSSProperties = orientacao === "v" ? {
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    width: "100vh",
+    height: "100vw",
+    transform: "translate(-50%, -50%) rotate(-90deg)",
+  } : {}
+
   return (
     <div className="w-screen h-screen bg-black overflow-hidden relative">
+      {/*
+        blank.mp4 invisível — workaround para autoplay policy.
+        Mantém o browser em estado "media-active", permitindo que
+        vídeos subsequentes reproduzam sem bloqueio.
+        NÃO remover. NÃO mover para dentro do container rotacionado.
+      */}
       <video
         autoPlay
         loop
@@ -168,7 +195,7 @@ export default function Player() {
         <source src="/blank.mp4" type="video/mp4" />
       </video>
 
-      <div className="relative z-10 w-full h-full">
+      <div style={verticalStyle} className={orientacao === "v" ? "" : "relative z-10 w-full h-full"}>
         <div className={`w-full h-full transition-opacity duration-300 ${fade ? "opacity-100" : "opacity-0"}`}>
           {atual.tipo === "imagem" && (
             <ImageSlide

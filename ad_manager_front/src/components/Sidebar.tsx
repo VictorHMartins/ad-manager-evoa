@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Image from "next/image"
-import { LayoutDashboard, Layers, List, LogOut, HelpCircle } from "lucide-react"
+import { LayoutDashboard, Layers, List, Tv2, LogOut, HelpCircle } from "lucide-react"
 
 export default function Sidebar() {
 
@@ -50,6 +50,7 @@ export default function Sidebar() {
             <NavItem icon={LayoutDashboard} label="Dashboard" path="/" />
             <NavItem icon={Layers} label="Playlists" path="/playlists" />
             <NavItem icon={List} label="Fila de Reprodução" path="/filas" />
+            <NavItem icon={Tv2} label="TVs" path="/tvs" />
           </div>
 
         </div>
@@ -123,6 +124,16 @@ export default function Sidebar() {
                 </div>
                 <p className="text-sm text-gray-400">
                   Configure horários e dias da semana para definir quando cada playlist será exibida.
+                </p>
+              </div>
+
+              <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Tv2 size={18} className="text-[#ed5b0c]" />
+                  <span className="font-semibold">TVs</span>
+                </div>
+                <p className="text-sm text-gray-400">
+                  Cadastre TVs com código único. Cada TV tem suas próprias filas e acessa o player pelo código.
                 </p>
               </div>
 
