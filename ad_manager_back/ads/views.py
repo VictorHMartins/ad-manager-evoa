@@ -4,14 +4,20 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
-from datetime import datetime
 
-from .models import Playlist, PlaylistMidia, FilaReproducao
+from .models import Playlist, PlaylistMidia, FilaReproducao, Dispositivo
 from .serializers import (
     PlaylistSerializer,
     PlaylistMidiaSerializer,
-    FilaReproducaoSerializer
+    FilaReproducaoSerializer,
+    DispositivoSerializer,
 )
+
+
+class DispositivoViewSet(viewsets.ModelViewSet):
+    queryset = Dispositivo.objects.all().order_by("nome")
+    serializer_class = DispositivoSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class PlaylistViewSet(viewsets.ModelViewSet):
@@ -153,37 +159,27 @@ class FilaReproducaoViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def player_api(request):
-
+def _resolver_fila_ativa(filas_qs):
+    """Retorna a fila ativa no momento dado um queryset de FilaReproducao."""
     now = timezone.localtime()
     hora = now.replace(second=0, microsecond=0).time()
     dia = (now.weekday() + 1) % 7
 
-    filas = FilaReproducao.objects.filter(ativo=True).order_by("horario_inicio")
-
     filas_validas = []
 
-    for fila in filas:
-
+    for fila in filas_qs:
         dias = fila.dias_semana or []
-
-        dia_ok = dia in dias
-        horario_ok = fila.horario_inicio <= hora <= fila.horario_fim
-
-        if dia_ok and horario_ok:
+        if dia in dias and fila.horario_inicio <= hora <= fila.horario_fim:
             filas_validas.append(fila)
 
     if not filas_validas:
-        return Response({"mensagem": "Nenhuma playlist ativa"})
+        return None
 
-    fila_ativa = sorted(
-        filas_validas,
-        key=lambda f: f.horario_inicio,
-        reverse=True
-    )[0]
+    return sorted(filas_validas, key=lambda f: f.horario_inicio, reverse=True)[0]
 
+
+def _montar_midias(fila_ativa):
+    """Monta a lista flat de mídias de uma fila."""
     playlists = fila_ativa.playlists.select_related("playlist").order_by("ordem")
 
     midias_final = []
@@ -200,6 +196,51 @@ def player_api(request):
                 "duracao": m.duracao,
                 "playlist": item.playlist.nome
             })
+
+    return midias_final
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def player_api_tv(request, codigo):
+    """Endpoint por TV. Retorna a fila ativa para o dispositivo informado."""
+    try:
+        dispositivo = Dispositivo.objects.get(codigo=codigo.lower(), ativo=True)
+    except Dispositivo.DoesNotExist:
+        return Response({"mensagem": "TV não encontrada"}, status=404)
+
+    filas_qs = FilaReproducao.objects.filter(ativo=True, dispositivo=dispositivo).order_by("horario_inicio")
+    fila_ativa = _resolver_fila_ativa(filas_qs)
+
+    if not fila_ativa:
+        return Response({
+            "mensagem": "Nenhuma playlist ativa",
+            "orientacao": dispositivo.orientacao,
+            "tipo_player": dispositivo.tipo_player,
+        })
+
+    midias_final = _montar_midias(fila_ativa)
+
+    return Response({
+        "fila": fila_ativa.nome,
+        "orientacao": dispositivo.orientacao,
+        "tipo_player": dispositivo.tipo_player,
+        "total_midias": len(midias_final),
+        "midias": midias_final
+    })
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def player_api(request):
+    """Endpoint legado (global). Retorna filas sem dispositivo associado."""
+    filas_qs = FilaReproducao.objects.filter(ativo=True, dispositivo__isnull=True).order_by("horario_inicio")
+    fila_ativa = _resolver_fila_ativa(filas_qs)
+
+    if not fila_ativa:
+        return Response({"mensagem": "Nenhuma playlist ativa"})
+
+    midias_final = _montar_midias(fila_ativa)
 
     return Response({
         "fila": fila_ativa.nome,

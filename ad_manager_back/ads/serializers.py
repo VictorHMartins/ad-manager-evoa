@@ -1,7 +1,13 @@
 from rest_framework import serializers
-from .models import Playlist, PlaylistMidia, FilaReproducao, FilaPlaylist
+from .models import Playlist, PlaylistMidia, FilaReproducao, FilaPlaylist, Dispositivo
 from datetime import datetime
 import json
+
+
+class DispositivoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dispositivo
+        fields = "__all__"
 
 
 class PlaylistMidiaSerializer(serializers.ModelSerializer):
@@ -74,6 +80,9 @@ class FilaPlaylistSerializer(serializers.ModelSerializer):
 
 class FilaReproducaoSerializer(serializers.ModelSerializer):
     playlists = FilaPlaylistSerializer(many=True, read_only=True)
+    dispositivo_nome = serializers.CharField(
+        source="dispositivo.nome", read_only=True, allow_null=True, default=None
+    )
 
     class Meta:
         model = FilaReproducao
@@ -97,6 +106,8 @@ class FilaReproducaoSerializer(serializers.ModelSerializer):
         inicio = self._parse_time(inicio_raw)
         fim = self._parse_time(fim_raw)
 
+        dispositivo_id = request.data.get("dispositivo") or None
+
         instance = getattr(self, "instance", None)
 
         if not dias:
@@ -105,7 +116,11 @@ class FilaReproducaoSerializer(serializers.ModelSerializer):
         if inicio >= fim:
             raise serializers.ValidationError("Horário inválido.")
 
-        conflitos = FilaReproducao.objects.filter(ativo=True)
+        # Conflito verificado apenas dentro do mesmo dispositivo
+        conflitos = FilaReproducao.objects.filter(
+            ativo=True,
+            dispositivo_id=dispositivo_id
+        )
 
         if instance:
             conflitos = conflitos.exclude(id=instance.id)
@@ -134,11 +149,14 @@ class FilaReproducaoSerializer(serializers.ModelSerializer):
         inicio = self._parse_time(request.data.get("horario_inicio"))
         fim = self._parse_time(request.data.get("horario_fim"))
 
+        dispositivo_id = request.data.get("dispositivo") or None
+
         fila = FilaReproducao.objects.create(
             nome=request.data.get("nome"),
             horario_inicio=inicio,
             horario_fim=fim,
-            dias_semana=dias
+            dias_semana=dias,
+            dispositivo_id=dispositivo_id
         )
 
         self._processar_playlists(request, fila)
@@ -153,10 +171,13 @@ class FilaReproducaoSerializer(serializers.ModelSerializer):
         inicio = self._parse_time(request.data.get("horario_inicio"))
         fim = self._parse_time(request.data.get("horario_fim"))
 
+        dispositivo_id = request.data.get("dispositivo") or None
+
         instance.nome = request.data.get("nome")
         instance.horario_inicio = inicio
         instance.horario_fim = fim
         instance.dias_semana = dias
+        instance.dispositivo_id = dispositivo_id
 
         instance.save()
 

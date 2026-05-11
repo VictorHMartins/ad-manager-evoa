@@ -1,6 +1,27 @@
 from django import forms
 from django.contrib import admin
-from .models import Playlist, PlaylistMidia, FilaReproducao, FilaPlaylist
+from .models import Playlist, PlaylistMidia, FilaReproducao, FilaPlaylist, Dispositivo
+
+
+@admin.register(Dispositivo)
+class DispositivoAdmin(admin.ModelAdmin):
+    list_display = ("nome", "codigo", "orientacao", "tipo_player", "ativo", "criado_em")
+    list_filter = ("orientacao", "tipo_player", "ativo")
+    search_fields = ("nome", "codigo")
+    readonly_fields = ("criado_em",)
+
+    fieldsets = (
+        (None, {
+            "fields": ("nome", "codigo", "ativo")
+        }),
+        ("Player", {
+            "fields": ("tipo_player", "orientacao", "descricao")
+        }),
+        ("Info", {
+            "fields": ("criado_em",),
+            "classes": ("collapse",)
+        }),
+    )
 
 
 class FilaForm(forms.ModelForm):
@@ -58,10 +79,13 @@ class FilaReproducaoAdmin(admin.ModelAdmin):
 
     list_display = (
         "nome",
+        "dispositivo",
         "horario_inicio",
         "horario_fim",
         "ativo"
     )
+
+    list_filter = ("dispositivo", "ativo")
 
     inlines = [FilaPlaylistInline]
 

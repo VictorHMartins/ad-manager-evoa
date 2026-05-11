@@ -4,6 +4,57 @@ import os
 from django.core.exceptions import ValidationError
 
 
+class Dispositivo(models.Model):
+
+    ORIENTACAO_CHOICES = [
+        ('h', 'Horizontal'),
+        ('v', 'Vertical'),
+    ]
+
+    PLAYER_CHOICES = [
+        ('react', 'Player React'),
+        ('legacy', 'Player Legacy'),
+    ]
+
+    nome = models.CharField(max_length=200)
+
+    codigo = models.SlugField(
+        max_length=20,
+        unique=True,
+        help_text="Código curto único. Ex: r, m, p, r2"
+    )
+
+    orientacao = models.CharField(
+        max_length=1,
+        choices=ORIENTACAO_CHOICES,
+        default='h'
+    )
+
+    tipo_player = models.CharField(
+        max_length=10,
+        choices=PLAYER_CHOICES,
+        default='react'
+    )
+
+    ativo = models.BooleanField(default=True)
+
+    descricao = models.TextField(blank=True)
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        self.codigo = self.codigo.lower()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.nome} ({self.codigo})"
+
+    class Meta:
+        verbose_name = "Dispositivo"
+        verbose_name_plural = "Dispositivos"
+        ordering = ["nome"]
+
+
 class Playlist(models.Model):
 
     nome = models.CharField(max_length=200)
@@ -104,6 +155,14 @@ class FilaReproducao(models.Model):
 
     nome = models.CharField(max_length=200)
 
+    dispositivo = models.ForeignKey(
+        Dispositivo,
+        on_delete=models.CASCADE,
+        related_name='filas',
+        null=True,
+        blank=True
+    )
+
     dias_semana = models.JSONField(
         null=True,
         blank=True,
@@ -124,8 +183,10 @@ class FilaReproducao(models.Model):
         if self.horario_inicio >= self.horario_fim:
             raise ValidationError("Horário inválido.")
 
+        # Conflito verificado apenas dentro do mesmo dispositivo
         conflitos = FilaReproducao.objects.filter(
-            ativo=True
+            ativo=True,
+            dispositivo=self.dispositivo
         ).exclude(id=self.id)
 
         for fila in conflitos:

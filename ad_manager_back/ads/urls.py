@@ -4,15 +4,19 @@ from .views import (
     PlaylistViewSet,
     PlaylistMidiaViewSet,
     FilaReproducaoViewSet,
-    player_api
+    DispositivoViewSet,
+    player_api,
+    player_api_tv,
 )
 
 router = DefaultRouter()
 router.register(r'playlists', PlaylistViewSet)
 router.register(r'midias', PlaylistMidiaViewSet)
 router.register(r'filas', FilaReproducaoViewSet)
+router.register(r'dispositivos', DispositivoViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('player/', player_api),
+    path('player/', player_api),                        # legado — filas sem TV
+    path('player/<slug:codigo>/', player_api_tv),       # por TV
 ]
