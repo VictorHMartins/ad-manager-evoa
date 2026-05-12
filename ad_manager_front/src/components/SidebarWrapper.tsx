@@ -8,7 +8,7 @@ export default function SidebarWrapper({ children }: any) {
   const pathname = usePathname()
 
   const hideSidebar =
-    pathname === "/login" || pathname.startsWith("/player") || pathname.startsWith("/tv")
+    pathname === "/login" || pathname.startsWith("/player")
 
   return (
     <div className={hideSidebar ? "" : "flex"}>
