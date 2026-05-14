@@ -2,16 +2,16 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { apiFetch, getPlaylist, MEDIA_URL } from "@/src/services/api"
+import { apiFetch } from "@/src/services/api"
 import { useAuth } from "@/src/hooks/useAuth"
 import Image from "next/image"
-import { Plus, ListVideo, Clock, PlayCircle } from "lucide-react"
+import { Plus, ListVideo, Clock, Tv2 } from "lucide-react"
 
 export default function DashboardPage() {
   const router = useRouter()
   const { loading, isAuthenticated } = useAuth()
 
-  const [player, setPlayer] = useState<any>(null)
+  const [dispositivos, setDispositivos] = useState<any[]>([])
   const [filas, setFilas] = useState<any[]>([])
 
   function formatarDiaSemana(dias: number[]) {
@@ -23,13 +23,12 @@ export default function DashboardPage() {
   async function carregar() {
     try {
 
-      const [playerData, filasData] = await Promise.all([
-        getPlaylist(),
+      const [dispositivosData, filasData] = await Promise.all([
+        apiFetch("/api/dispositivos/"),
         apiFetch("/api/filas/")
       ])
 
-      setPlayer(playerData)
-
+      setDispositivos(Array.isArray(dispositivosData) ? dispositivosData : dispositivosData?.results || [])
       setFilas(Array.isArray(filasData) ? filasData : filasData?.results || [])
 
     } catch {
@@ -116,67 +115,38 @@ export default function DashboardPage() {
 
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
 
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
-              <PlayCircle className="text-[#ed5b0c]" size={18} />
-              <h2 className="font-semibold text-[#253529]">
-                Fila Atual
-              </h2>
-            </div>
-
-            <span className="text-sm text-gray-500">
-              {player?.fila ? player.fila : "Sem fila no momento"}
-            </span>
+          <div className="flex items-center gap-2 mb-4">
+            <Tv2 className="text-[#ed5b0c]" size={18} />
+            <h2 className="font-semibold text-[#253529]">
+              TVs cadastradas
+            </h2>
           </div>
 
-          {!player?.midias || player.midias.length === 0 ? (
+          {dispositivos.length === 0 ? (
             <div className="text-center text-gray-400 text-sm py-10">
-              Nenhuma mídia em reprodução no momento
+              Nenhuma TV cadastrada
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-4 text-xs text-gray-400 mb-2 px-2">
-                <span>Ordem</span>
-                <span>Título</span>
-                <span>Duração</span>
-                <span>Mídia</span>
-              </div>
-
-              <div className="space-y-2">
-                {player.midias.map((m: any, i: number) => (
-                  <div
-                    key={m.id || i}
-                    className="grid grid-cols-4 items-center bg-[#f9fafb] rounded-lg p-2 hover:bg-[#f1f5f9] transition"
-                  >
-                    <span className="text-sm text-gray-500">
-                      {i + 1}
-                    </span>
-
-                    <span className="text-sm font-medium text-[#253529]">
-                      {m.nome}
-                    </span>
-
-                    <span className="text-sm text-gray-500">
-                      {m.duracao || "--"}
-                    </span>
-
-                    <div className="w-[60px] h-[35px] rounded overflow-hidden border">
-                      {m.tipo === "video" ? (
-                        <video
-                          src={`${MEDIA_URL}${m.arquivo}`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <img
-                          src={`${MEDIA_URL}${m.arquivo}`}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                    </div>
+            <div className="space-y-2">
+              {dispositivos.map((tv: any) => (
+                <div
+                  key={tv.id}
+                  onClick={() => router.push("/tvs")}
+                  className="flex items-center justify-between bg-[#f9fafb] rounded-lg p-3 hover:bg-[#f1f5f9] transition cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-[#253529] text-sm">{tv.nome}</span>
+                    <span className="font-mono text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">{tv.codigo}</span>
+                    {!tv.ativo && (
+                      <span className="text-xs text-red-400">Inativa</span>
+                    )}
                   </div>
-                ))}
-              </div>
-            </>
+                  <span className="text-xs text-gray-400">
+                    {tv.orientacao === "v" ? "Vertical" : "Horizontal"} · {tv.tipo_player === "legacy" ? "Compatível" : "Moderno"}
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 

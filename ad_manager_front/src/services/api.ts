@@ -47,19 +47,10 @@ export async function apiFetch(endpoint: string, options: any = {}) {
   }
 }
 
-/**
- * Busca a playlist ativa para um dispositivo.
- * Se nenhum código for passado, usa o endpoint legado (/api/player/) que
- * retorna filas sem dispositivo associado — mantém o dashboard funcionando.
- */
-export async function getPlaylist(codigo?: string) {
-  const url = codigo
-    ? `${API_URL}/api/player/${codigo}/`
-    : `${API_URL}/api/player/`
-
+export async function getPlaylist(codigo: string) {
   try {
 
-    const res = await fetch(url, {
+    const res = await fetch(`${API_URL}/api/player/${codigo}/`, {
       cache: "no-store"
     })
 

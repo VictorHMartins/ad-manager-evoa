@@ -151,14 +151,14 @@ export default function TvModal({ tv, fechar }: any) {
                         </div>
 
                         <div>
-                            <label className="text-xs text-gray-500 mb-1 block">Tipo de player</label>
+                            <label className="text-xs text-gray-500 mb-1 block">Modo de reprodução</label>
                             <select
                                 value={tipoPlayer}
                                 onChange={(e) => setTipoPlayer(e.target.value)}
                                 className="w-full border rounded px-3 py-2 text-sm"
                             >
-                                <option value="react">Player React</option>
-                                <option value="legacy">Player Legacy</option>
+                                <option value="react">Player Moderno</option>
+                                <option value="legacy">Player Compatível (TVs antigas)</option>
                             </select>
                         </div>
 

@@ -192,7 +192,7 @@ export default function FilaModal({ fila, fechar }: any) {
                         onChange={(e) => setDispositivoId(e.target.value)}
                         className="w-full border rounded px-3 py-2 text-sm"
                     >
-                        <option value="">Sem TV específica (legado)</option>
+                        <option value="">Selecione uma TV</option>
                         {dispositivos.map((d: any) => (
                             <option key={d.id} value={String(d.id)}>
                                 {d.nome} ({d.codigo})

@@ -10,6 +10,34 @@
       overflow: hidden;
     }
 
+    /* Overlay de mensagens de status (erros, sem mídia, etc.) */
+    #mensagem {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      color: white;
+      font-family: sans-serif;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      z-index: 999;
+    }
+
+    #msg-titulo {
+      font-size: 1.1em;
+      margin: 0 0 8px 0;
+    }
+
+    #msg-subtitulo {
+      font-size: 0.8em;
+      color: #666;
+      margin: 0;
+    }
+
     /* Orientação vertical: rotaciona o conteúdo para TVs em modo landscape
        exibindo conteúdo portrait. Aplicado via JS quando orientacao === "v". */
     body.tv-vertical #conteudo {
@@ -25,6 +53,13 @@
 
 <body>
 
+  <div id="mensagem">
+    <div>
+      <p id="msg-titulo"></p>
+      <p id="msg-subtitulo"></p>
+    </div>
+  </div>
+
   <div id="conteudo" style="width:100vw;height:100vh;position:relative;">
     <video id="video" muted playsinline style="width:100%;height:100%;object-fit:cover;display:none;position:absolute;top:0;left:0;"></video>
     <img id="image" style="width:100%;height:100%;object-fit:cover;display:none;position:absolute;top:0;left:0;" />
@@ -34,15 +69,31 @@
 
     var API_URL = "https://ad-manager-evoa-ad-manager-back.t16vcz.easypanel.host"
 
-    // Lê o código da TV da query string: /tv.html?tv=CODIGO
-    var params = new URLSearchParams(window.location.search)
-    var tvCode = params.get('tv') || ''
+    // Leitura ES5 da query string — sem URLSearchParams (máxima compatibilidade)
+    function lerQueryParam(nome) {
+      var busca = window.location.search
+      if (!busca) return ''
+      var pares = busca.substring(1).split('&')
+      for (var i = 0; i < pares.length; i++) {
+        var partes = pares[i].split('=')
+        if (partes[0] === nome) {
+          return partes.length > 1 ? decodeURIComponent(partes[1]) : ''
+        }
+      }
+      return ''
+    }
 
-    if (!tvCode) {
-      document.body.innerHTML = '<div style="color:white;font-family:sans-serif;text-align:center;padding-top:40vh;">'
-        + '<p style="font-size:1.2em;">Código de TV não informado.</p>'
-        + '<p style="color:#aaa;">Use: /tv.html?tv=CODIGO</p>'
-        + '</div>'
+    var tvCode = lerQueryParam('tv')
+
+    // Exibe mensagem de status na tela — substitui tela preta silenciosa
+    function mostrarMensagem(titulo, subtitulo) {
+      document.getElementById('msg-titulo').innerHTML = titulo
+      document.getElementById('msg-subtitulo').innerHTML = subtitulo || ''
+      document.getElementById('mensagem').style.display = 'flex'
+    }
+
+    function esconderMensagem() {
+      document.getElementById('mensagem').style.display = 'none'
     }
 
     var midias = []
@@ -73,7 +124,10 @@
 
     function carregar() {
 
-      if (!tvCode) return
+      if (!tvCode) {
+        mostrarMensagem('Código de TV não informado', 'Acesse: /tv.html?tv=CODIGO')
+        return
+      }
 
       var xhr = new XMLHttpRequest()
 
@@ -95,6 +149,8 @@
 
               if (data.midias && data.midias.length > 0) {
 
+                esconderMensagem()
+
                 if (midias.length === 0) {
 
                   midias = data.midias
@@ -115,20 +171,28 @@
                 ultimaAtualizacao = new Date().getTime()
 
               } else {
+                mostrarMensagem('Nenhuma mídia disponível', 'Nenhuma fila ativa para este horário')
                 setTimeout(carregar, 5000)
               }
 
             } catch (e) {
+              mostrarMensagem('Erro ao processar resposta', 'Tentando novamente...')
               setTimeout(carregar, 5000)
             }
 
+          } else if (xhr.status === 404) {
+            mostrarMensagem('TV não encontrada', 'Código: ' + tvCode)
+            setTimeout(carregar, 30000)
+
           } else {
+            mostrarMensagem('Erro ao conectar com o servidor', 'Tentando reconectar...')
             setTimeout(carregar, 5000)
           }
         }
       }
 
       xhr.onerror = function () {
+        mostrarMensagem('Sem conexão com o servidor', 'Verificando conexão...')
         setTimeout(carregar, 5000)
       }
 
@@ -157,6 +221,7 @@
       limparTimer()
 
       if (!midias.length) {
+        mostrarMensagem('Nenhuma mídia disponível', '')
         timer = setTimeout(carregar, 5000)
         return
       }
