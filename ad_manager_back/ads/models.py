@@ -12,8 +12,8 @@ class Dispositivo(models.Model):
     ]
 
     PLAYER_CHOICES = [
-        ('react', 'Player React'),
-        ('legacy', 'Player Legacy'),
+        ('react', 'Player Moderno'),
+        ('legacy', 'Player Compatível'),
     ]
 
     nome = models.CharField(max_length=200)

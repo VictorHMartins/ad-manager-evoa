@@ -110,6 +110,9 @@ class FilaReproducaoSerializer(serializers.ModelSerializer):
 
         instance = getattr(self, "instance", None)
 
+        if not dispositivo_id:
+            raise serializers.ValidationError("Selecione uma TV para esta fila.")
+
         if not dias:
             raise serializers.ValidationError("Selecione ao menos um dia.")
 

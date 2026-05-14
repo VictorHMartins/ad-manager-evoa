@@ -230,20 +230,3 @@ def player_api_tv(request, codigo):
     })
 
 
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def player_api(request):
-    """Endpoint legado (global). Retorna filas sem dispositivo associado."""
-    filas_qs = FilaReproducao.objects.filter(ativo=True, dispositivo__isnull=True).order_by("horario_inicio")
-    fila_ativa = _resolver_fila_ativa(filas_qs)
-
-    if not fila_ativa:
-        return Response({"mensagem": "Nenhuma playlist ativa"})
-
-    midias_final = _montar_midias(fila_ativa)
-
-    return Response({
-        "fila": fila_ativa.nome,
-        "total_midias": len(midias_final),
-        "midias": midias_final
-    })

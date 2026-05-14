@@ -5,7 +5,6 @@ from .views import (
     PlaylistMidiaViewSet,
     FilaReproducaoViewSet,
     DispositivoViewSet,
-    player_api,
     player_api_tv,
 )
 
@@ -17,6 +16,5 @@ router.register(r'dispositivos', DispositivoViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('player/', player_api),                        # legado — filas sem TV
-    path('player/<slug:codigo>/', player_api_tv),       # por TV
+    path('player/<slug:codigo>/', player_api_tv),
 ]
