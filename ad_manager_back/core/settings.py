@@ -10,12 +10,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "ad-manager-evoa-ad-manager-back.t16vcz.easypanel.host",
+    "ad-manager-ad-manager-back.i41evn.easypanel.host",
     "localhost",
     "127.0.0.1"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://ad-manager-evoa-ad-manager-back.t16vcz.easypanel.host",
+    "https://ad-manager-ad-manager-back.i41evn.easypanel.host",
 ]
 
 INSTALLED_APPS = [
@@ -114,6 +116,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://evoa.webnox.com.br",
+    "https://admanager.evoa.com.br",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
