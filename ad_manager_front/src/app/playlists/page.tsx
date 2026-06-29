@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { apiFetch, MEDIA_URL } from "@/src/services/api"
+import { apiFetch, API_URL, MEDIA_URL } from "@/src/services/api"
 import { Plus, Pencil, Trash2, Image as ImageIcon } from "lucide-react"
 import PlaylistModal from "@/src/components/playlists/PlaylistModal"
 import ConfirmModal from "@/src/components/ConfirmModal"
@@ -15,6 +15,8 @@ export default function PlaylistsPage() {
     const [midias, setMidias] = useState<any[]>([])
     const [confirmOpen, setConfirmOpen] = useState(false)
     const [idExcluir, setIdExcluir] = useState<number | null>(null)
+    const [uploading, setUploading] = useState(false)
+    const [progresso, setProgresso] = useState(0)
 
     async function carregar() {
         try {
@@ -66,25 +68,50 @@ export default function PlaylistsPage() {
             form.append(`midias[${index}][ordem]`, m.ordem || index + 1)
         })
 
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+        const url = editando
+            ? `${API_URL}/api/playlists/${editando.id}/`
+            : `${API_URL}/api/playlists/`
+        const method = editando ? "PUT" : "POST"
+
+        setUploading(true)
+        setProgresso(0)
+
         try {
 
-            if (editando) {
-                await apiFetch(`/api/playlists/${editando.id}/`, {
-                    method: "PUT",
-                    body: form
-                })
-            } else {
-                await apiFetch("/api/playlists/", {
-                    method: "POST",
-                    body: form
-                })
-            }
+            await new Promise<void>((resolve, reject) => {
+                const xhr = new XMLHttpRequest()
+
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        setProgresso(Math.round((e.loaded / e.total) * 100))
+                    }
+                }
+
+                xhr.onload = () => {
+                    if (xhr.status === 401) {
+                        localStorage.removeItem("token")
+                        window.location.href = "/login"
+                        reject(new Error("Unauthorized"))
+                        return
+                    }
+                    resolve()
+                }
+
+                xhr.onerror = () => reject(new Error("Erro de rede"))
+
+                xhr.open(method, url)
+                if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`)
+                xhr.send(form)
+            })
 
             setOpenModal(false)
             carregar()
 
         } catch {
             console.log("Erro ao salvar playlist")
+        } finally {
+            setUploading(false)
         }
     }
 
@@ -233,6 +260,8 @@ export default function PlaylistsPage() {
                     fechar={() => setOpenModal(false)}
                     salvar={salvar}
                     editando={editando}
+                    uploading={uploading}
+                    progresso={progresso}
                 />
             )}
 

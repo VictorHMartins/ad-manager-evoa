@@ -12,7 +12,9 @@ export default function PlaylistModal({
   setMidias,
   fechar,
   salvar,
-  editando
+  editando,
+  uploading,
+  progresso
 }: any) {
 
   const [addOpen, setAddOpen] = useState(false)
@@ -197,25 +199,37 @@ export default function PlaylistModal({
 
         <button
           onClick={() => setAddOpen(true)}
-          className="text-sm text-[#ed5b0c] mb-4 cursor-pointer hover:underline"
+          disabled={uploading}
+          className="text-sm text-[#ed5b0c] mb-4 cursor-pointer hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
         >
           + Adicionar mídia
         </button>
+
+        {uploading && (
+          <div className="w-full bg-gray-200 rounded-full h-1.5 mb-4">
+            <div
+              className="h-1.5 rounded-full bg-[#ed5b0c] transition-all duration-300"
+              style={{ width: `${progresso}%` }}
+            />
+          </div>
+        )}
 
         <div className="flex justify-end gap-2">
 
           <button
             onClick={fechar}
-            className="px-4 py-2 text-sm cursor-pointer"
+            disabled={uploading}
+            className="px-4 py-2 text-sm cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Cancelar
           </button>
 
           <button
             onClick={salvar}
-            className="bg-[#ed5b0c] text-white px-4 py-2 rounded-lg cursor-pointer active:scale-95 transition"
+            disabled={uploading}
+            className="bg-[#ed5b0c] text-white px-4 py-2 rounded-lg cursor-pointer active:scale-95 transition disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100"
           >
-            Salvar
+            {uploading ? `Enviando... ${progresso}%` : "Salvar"}
           </button>
 
         </div>
