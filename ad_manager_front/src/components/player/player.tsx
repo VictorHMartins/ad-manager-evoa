@@ -20,6 +20,7 @@ export default function Player({ codigo }: PlayerProps) {
 
   const midiasRef = useRef<any[]>([])
   const novaMidiaRef = useRef<any[] | null>(null)
+  const preloadVideoRef = useRef<HTMLVideoElement>(null)
 
   const carregar = useCallback(async () => {
     try {
@@ -127,6 +128,35 @@ export default function Player({ codigo }: PlayerProps) {
     return () => clearInterval(interval)
   }, [])
 
+  // Preload do próximo item — bufferiza vídeo/imagem seguinte antes da troca
+  useEffect(() => {
+    const total = midiasRef.current.length
+    if (total === 0) return
+
+    const proxima = midiasRef.current[(index + 1) % total]
+    if (!proxima) return
+
+    if (proxima.tipo === "video") {
+      const video = preloadVideoRef.current
+      if (video) {
+        video.src = `${MEDIA_URL}${proxima.arquivo}`
+        video.load()
+      }
+    } else if (proxima.tipo === "imagem") {
+      const img = new Image()
+      img.src = `${MEDIA_URL}${proxima.arquivo}`
+    }
+
+    return () => {
+      const video = preloadVideoRef.current
+      if (video) {
+        video.pause()
+        video.removeAttribute("src")
+        video.load()
+      }
+    }
+  }, [index, midias])
+
   function next() {
     setFade(false)
 
@@ -194,6 +224,18 @@ export default function Player({ codigo }: PlayerProps) {
       >
         <source src="/blank.mp4" type="video/mp4" />
       </video>
+
+      {/*
+        Preload oculto do próximo item da playlist.
+        Não é exibido nem tocado — só força o browser a bufferizar
+        o próximo vídeo em cache HTTP antes da troca chegar nele.
+      */}
+      <video
+        ref={preloadVideoRef}
+        preload="auto"
+        muted
+        style={{ display: "none" }}
+      />
 
       <div style={verticalStyle} className={orientacao === "v" ? "" : "relative z-10 w-full h-full"}>
         <div className={`w-full h-full transition-opacity duration-300 ${fade ? "opacity-100" : "opacity-0"}`}>
