@@ -6,13 +6,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-f_v32utvaq7p$%+v+t4xd8#s9m3w52zo+(hqf^$x$i5uj17azy'
 
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
     "ad-manager-evoa-ad-manager-back.t16vcz.easypanel.host",
     "ad-manager-ad-manager-back.i41evn.easypanel.host",
     "localhost",
-    "127.0.0.1"
+    "127.0.0.1",
+    "admanager.evoa.com.br",
+    "evoa.webnox.com.br",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -134,3 +136,8 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=12),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
